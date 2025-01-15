@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         ${user.status ? 'Active' : 'Inactive'}
                     </span>
                 </td> <!-- User Status (Active/Inactive) -->
+                <td>${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</td> <!-- User Role -->
                 <td>
                     <button class="btn btn-warning btn-sm" onclick="editUser(${index})">
                         <i class="fas fa-edit"></i> Edit
@@ -48,6 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const userPassword = document.getElementById("userPassword").value;
         const userAddress = document.getElementById("userAddress").value;
         const userStatus = document.getElementById("userStatus").checked;
+        const userRole = document.getElementById("userRole").value; // Get Role from select input
 
         if (!userName || !userEmail || !userPassword || !userAddress) {
             Swal.fire("Error", "All fields are required", "error");
@@ -67,7 +69,8 @@ document.addEventListener("DOMContentLoaded", function () {
             email: userEmail,
             password: hashedPassword,
             address: userAddress,
-            status: userStatus
+            status: userStatus,
+            role: userRole
         });
         localStorage.setItem("users", JSON.stringify(users));
 
@@ -86,6 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("userPassword").value = ""; // For security, do not prefill password
         document.getElementById("userAddress").value = user.address;
         document.getElementById("userStatus").checked = user.status;
+        document.getElementById("userRole").value = user.role; // Set the role in the select input
         userModal.show();
 
         // Handle Save
@@ -97,7 +101,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 email: document.getElementById("userEmail").value,
                 password: CryptoJS.SHA256(document.getElementById("userPassword").value).toString(CryptoJS.enc.Base64),
                 address: document.getElementById("userAddress").value,
-                status: document.getElementById("userStatus").checked
+                status: document.getElementById("userStatus").checked,
+                role: document.getElementById("userRole").value // Update role
             };
             localStorage.setItem("users", JSON.stringify(users));
             userModal.hide();

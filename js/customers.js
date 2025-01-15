@@ -5,7 +5,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const customerTable = document.getElementById("customerTable").getElementsByTagName('tbody')[0];
     let customers = JSON.parse(localStorage.getItem("customers")) || [];
 
-    // Function to render the customer table
+    // Generate diskon berdasarkan role
+    function getDiscount(role) {
+        switch (role) {
+            case "umum": return 5;
+            case "pelsem": return 10;
+            case "pelmem": return 15;
+            default: return 0;
+        }
+    }
+
+    // Render tabel pelanggan
     function renderCustomerTable() {
         customerTable.innerHTML = "";
         customers.forEach((customer, index) => {
@@ -15,8 +25,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${customer.id}</td>
                 <td>${customer.name}</td>
                 <td>${customer.email}</td>
-                <td>${customer.address}</td>
-                <td>${customer.phone}</td>
+                <td>${customer.password}</td>
+                <td>${customer.status}</td>
+                <td>${customer.role}</td>
+                <td>${customer.discount}%</td>
+                <td><img src="${customer.photo}" alt="photo" width="50" height="50"></td>
                 <td>
                     <button class="btn btn-warning btn-sm" onclick="editCustomer(${index})">
                         <i class="fas fa-edit"></i> Edit
@@ -29,74 +42,53 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Add Customer Button Click Event
-    addCustomerBtn.addEventListener("click", () => {
-        customerModal.show();
-    });
-
-    // Submit Form Event
+    // Tambah pelanggan baru
     customerForm.addEventListener("submit", function (e) {
         e.preventDefault();
+        const name = document.getElementById("customerName").value;
+        const email = document.getElementById("customerEmail").value;
+        const password = document.getElementById("customerPassword").value;
+        const status = document.getElementById("customerStatus").value;
+        const role = document.getElementById("customerRole").value;
+        const photoInput = document.getElementById("customerPhoto");
+        const id = `customer-${Date.now()}`;
+        const discount = getDiscount(role);
 
-        const customerName = document.getElementById("customerName").value;
-        const customerEmail = document.getElementById("customerEmail").value;
-        const customerAddress = document.getElementById("customerAddress").value;
-        const customerPhone = document.getElementById("customerPhone").value;
-
-        if (!customerName || !customerEmail || !customerAddress || !customerPhone) {
-            Swal.fire("Error", "All fields are required", "error");
-            return;
+        let photo = "";
+        if (photoInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                photo = reader.result;
+                saveCustomer(id, name, email, password, status, role, discount, photo);
+            };
+            reader.readAsDataURL(photoInput.files[0]);
+        } else {
+            saveCustomer(id, name, email, password, status, role, discount, photo);
         }
+    });
 
-        // Generate unique ID for the customer
-        const customerId = `customer-${Date.now()}`;
-
-        // Add Customer
-        customers.push({
-            id: customerId,
-            name: customerName,
-            email: customerEmail,
-            address: customerAddress,
-            phone: customerPhone
-        });
+    function saveCustomer(id, name, email, password, status, role, discount, photo) {
+        customers.push({ id, name, email, password, status, role, discount, photo });
         localStorage.setItem("customers", JSON.stringify(customers));
-
-        // Clear Form
         customerForm.reset();
         customerModal.hide();
         renderCustomerTable();
-        Swal.fire("Success", "Customer added successfully", "success");
-    });
+        Swal.fire("Success", "Customer added successfully!", "success");
+    }
 
-    // Edit Customer
+    // Edit pelanggan
     window.editCustomer = function (index) {
-        const customer = customers[index];
-        document.getElementById("customerName").value = customer.name;
-        document.getElementById("customerEmail").value = customer.email;
-        document.getElementById("customerAddress").value = customer.address;
-        document.getElementById("customerPhone").value = customer.phone;
-        customerModal.show();
+        Swal.fire("Editing is not implemented in this demo.");
     };
 
-    // Delete Customer
+    // Hapus pelanggan
     window.deleteCustomer = function (index) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "You will not be able to recover this customer!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-            cancelButtonText: "No, cancel!"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                customers.splice(index, 1);
-                localStorage.setItem("customers", JSON.stringify(customers));
-                renderCustomerTable();
-                Swal.fire("Deleted!", "The customer has been deleted.", "success");
-            }
-        });
+        customers.splice(index, 1);
+        localStorage.setItem("customers", JSON.stringify(customers));
+        renderCustomerTable();
+        Swal.fire("Deleted!", "Customer has been removed.", "success");
     };
 
-    // Initial Table Render
+    // Render tabel saat halaman dimuat
     renderCustomerTable();
 });

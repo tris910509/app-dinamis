@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${index + 1}</td>
                 <td>${user.name}</td>
                 <td>${user.email}</td>
+                <td><span class="badge bg-${user.status ? 'success' : 'danger'}">${user.status ? 'Active' : 'Inactive'}</span></td>
                 <td>
                     <button class="btn btn-warning btn-sm" onclick="editUser(${index})">
                         <i class="fas fa-edit"></i> Edit
@@ -37,14 +38,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const userName = document.getElementById("userName").value;
         const userEmail = document.getElementById("userEmail").value;
+        const userPassword = document.getElementById("userPassword").value;
+        const userAddress = document.getElementById("userAddress").value;
+        const userStatus = document.getElementById("userStatus").checked;
 
-        if (!userName || !userEmail) {
+        if (!userName || !userEmail || !userPassword || !userAddress) {
             Swal.fire("Error", "All fields are required", "error");
             return;
         }
 
+        // Generate unique ID based on current timestamp
+        const userId = `user-${Date.now()}`;
+
+        // Hash the password with SHA256
+        const hashedPassword = CryptoJS.SHA256(userPassword).toString(CryptoJS.enc.Base64);
+
         // Add User
-        users.push({ name: userName, email: userEmail });
+        users.push({
+            id: userId,
+            name: userName,
+            email: userEmail,
+            password: hashedPassword,
+            address: userAddress,
+            status: userStatus
+        });
         localStorage.setItem("users", JSON.stringify(users));
 
         // Clear Form
@@ -59,12 +76,22 @@ document.addEventListener("DOMContentLoaded", function () {
         const user = users[index];
         document.getElementById("userName").value = user.name;
         document.getElementById("userEmail").value = user.email;
+        document.getElementById("userPassword").value = ""; // For security, do not prefill password
+        document.getElementById("userAddress").value = user.address;
+        document.getElementById("userStatus").checked = user.status;
         userModal.show();
 
         // Handle Save
         userForm.onsubmit = function (e) {
             e.preventDefault();
-            users[index] = { name: document.getElementById("userName").value, email: document.getElementById("userEmail").value };
+            users[index] = {
+                id: user.id,  // Preserve the original ID
+                name: document.getElementById("userName").value,
+                email: document.getElementById("userEmail").value,
+                password: CryptoJS.SHA256(document.getElementById("userPassword").value).toString(CryptoJS.enc.Base64),
+                address: document.getElementById("userAddress").value,
+                status: document.getElementById("userStatus").checked
+            };
             localStorage.setItem("users", JSON.stringify(users));
             userModal.hide();
             renderTable();

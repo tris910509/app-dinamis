@@ -10,94 +10,108 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Transaction Management</h1>
-        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#transactionModal">
-            <i class="fas fa-plus"></i> Add Transaction
-        </button>
-
-        <!-- Tabel Transaksi -->
-        <table class="table table-striped mt-3" id="transactionTable">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Transaction ID</th>
-                    <th>Customer Name</th>
-                    <th>Product</th>
-                    <th>Amount</th>
-                    <th>Discount</th>
-                    <th>Payment Status</th>
-                    <th>Payment Method</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Transaction Rows will be dynamically added here -->
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Modal Transaksi -->
-    <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="transactionModalLabel">Add Transaction</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h1>Transaction Module</h1>
+        
+        <!-- Card Pilihan (Umum / Member) -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Umum</h5>
+                        <form id="generalForm">
+                            <div class="mb-3">
+                                <label for="generalName" class="form-label">Nama Customer</label>
+                                <input type="text" class="form-control" id="generalName" placeholder="Masukkan nama">
+                            </div>
+                            <div class="mb-3">
+                                <label for="generalContact" class="form-label">Kontak</label>
+                                <input type="text" class="form-control" id="generalContact" placeholder="Masukkan kontak">
+                            </div>
+                            <div class="mb-3">
+                                <label for="generalEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="generalEmail" placeholder="Masukkan email">
+                            </div>
+                            <div class="mb-3">
+                                <label for="generalAddress" class="form-label">Alamat</label>
+                                <input type="text" class="form-control" id="generalAddress" placeholder="Masukkan alamat">
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="setCustomerRole('general')">Pilih Umum</button>
+                        </form>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <form id="transactionForm">
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Role</label>
-                            <select class="form-control" id="role" required>
-                                <option value="umum">Umum</option>
-                                <option value="pelsem">Pelsem</option>
-                                <option value="pelmem">Pelmem</option>
-                            </select>
-                        </div>
-                        <div class="mb-3" id="customerSection">
-                            <label for="customerName" class="form-label">Customer</label>
-                            <select class="form-control" id="customerName" required disabled>
-                                <!-- Customers will be dynamically populated here -->
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="product" class="form-label">Product</label>
-                            <select class="form-control" id="product" required>
-                                <!-- Products will be dynamically populated here -->
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Amount</label>
-                            <input type="number" class="form-control" id="amount" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="discount" class="form-label">Discount (%)</label>
-                            <input type="number" class="form-control" id="discount" min="0" max="100" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="paymentStatus" class="form-label">Payment Status</label>
-                            <select class="form-control" id="paymentStatus" required>
-                                <option value="unpaid">Unpaid</option>
-                                <option value="paid">Paid</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="paymentMethod" class="form-label">Payment Method</label>
-                            <select class="form-control" id="paymentMethod" required>
-                                <option value="cash">Cash</option>
-                                <option value="credit_card">Credit Card</option>
-                                <option value="bank_transfer">Bank Transfer</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save</button>
-                    </form>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Member</h5>
+                        <form id="memberForm">
+                            <div class="mb-3">
+                                <label for="memberSelect" class="form-label">Pilih Customer</label>
+                                <select class="form-control" id="memberSelect"></select>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="setCustomerRole('member')">Pilih Member</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <hr>
+
+        <!-- Keranjang Transaksi -->
+        <h2>Keranjang Transaksi</h2>
+        <form id="cartForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <select class="form-control" id="productSelect"></select>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" class="form-control" id="quantity" placeholder="Jumlah" min="1">
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-success" onclick="addToCart()">Tambah ke Keranjang</button>
+                </div>
+            </div>
+        </form>
+        
+        <table class="table table-bordered mt-3" id="cartTable">
+            <thead>
+                <tr>
+                    <th>Nama Produk</th>
+                    <th>Harga</th>
+                    <th>Jumlah</th>
+                    <th>Total</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data Keranjang akan ditambahkan secara dinamis -->
+            </tbody>
+        </table>
+
+        <hr>
+
+        <!-- Pembayaran -->
+        <h2>Pembayaran</h2>
+        <div>
+            <p><strong>Subtotal:</strong> <span id="subtotal">0</span></p>
+            <div class="mb-3">
+                <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
+                <select class="form-control" id="paymentMethod">
+                    <option value="cash">Cash</option>
+                    <option value="noncash">Non-Cash</option>
+                </select>
+            </div>
+            <div id="cashPaymentSection">
+                <label for="cashAmount" class="form-label">Jumlah Uang</label>
+                <input type="number" class="form-control mb-3" id="cashAmount" placeholder="Masukkan jumlah uang">
+                <button class="btn btn-success" onclick="processCashPayment()">Bayar</button>
+            </div>
+            <button class="btn btn-primary" onclick="finalizeTransaction()">Lanjutkan</button>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="transaction.js"></script>
+    <script src="js/transaction.js"></script>
 </body>
 </html>

@@ -5,20 +5,42 @@ document.addEventListener("DOMContentLoaded", function () {
     const products = JSON.parse(localStorage.getItem("products")) || [];
     let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
 
-    // Populate Customer and Product dropdown
+    // Populate Customer dropdown based on role
     const customerSelect = document.getElementById("customerName");
-    customers.forEach(customer => {
-        const option = document.createElement("option");
-        option.value = customer.id;
-        option.textContent = customer.name;
-        customerSelect.appendChild(option);
-    });
+    const roleSelect = document.getElementById("role");
 
     const productSelect = document.getElementById("product");
+    const amountInput = document.getElementById("amount");
+
+    // Handle Role change
+    roleSelect.addEventListener("change", function() {
+        const role = roleSelect.value;
+        if (role === "umum") {
+            document.getElementById("customerSection").style.display = "none"; // Hide customer dropdown
+            customerSelect.disabled = true;
+        } else {
+            document.getElementById("customerSection").style.display = "block"; // Show customer dropdown
+            customerSelect.disabled = false;
+            populateCustomerDropdown();
+        }
+    });
+
+    // Populate Customer dropdown based on role
+    function populateCustomerDropdown() {
+        customerSelect.innerHTML = "";
+        customers.forEach(customer => {
+            const option = document.createElement("option");
+            option.value = customer.id;
+            option.textContent = customer.name;
+            customerSelect.appendChild(option);
+        });
+    }
+
+    // Populate Product dropdown
     products.forEach(product => {
         const option = document.createElement("option");
         option.value = product.id;
-        option.textContent = product.name;
+        option.textContent = `${product.name} - $${product.price}`;
         productSelect.appendChild(option);
     });
 
@@ -26,23 +48,32 @@ document.addEventListener("DOMContentLoaded", function () {
     transactionForm.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        const transactionId = "transaction-" + Date.now(); // Generate unique ID
-        const customerId = document.getElementById("customerName").value;
-        const productId = document.getElementById("product").value;
-        const amount = parseFloat(document.getElementById("amount").value);
+        const role = roleSelect.value;
+        const transactionId = "transaction-" + Date.now();
+        const customerId = role === "umum" ? null : customerSelect.value;
+        const productId = productSelect.value;
+        const amount = parseFloat(amountInput.value);
         const discount = parseFloat(document.getElementById("discount").value);
         const paymentStatus = document.getElementById("paymentStatus").value;
         const paymentMethod = document.getElementById("paymentMethod").value;
         const date = new Date().toLocaleString();
 
-        const customer = customers.find(c => c.id === customerId);
         const product = products.find(p => p.id === productId);
-
-        // Calculate discounted amount
         const discountedAmount = amount - (amount * (discount / 100));
+
+        if (product.stock < amount) {
+            Swal.fire("Error", "Not enough stock!", "error");
+            return;
+        }
+
+        // Deduct stock
+        product.stock -= amount;
+
+        const customer = customers.find(c => c.id === customerId) || { name: "Guest", id: null };
 
         transactions.push({ transactionId, customer, product, amount, discount, discountedAmount, paymentStatus, paymentMethod, date });
         localStorage.setItem("transactions", JSON.stringify(transactions));
+        localStorage.setItem("products", JSON.stringify(products)); // Save updated product stock
         renderTransactionTable();
         transactionForm.reset();
         Swal.fire("Success", "Transaction added successfully", "success");
@@ -54,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
         transactionTable.innerHTML = "";
         transactions.forEach((transaction, index) => {
             const paymentStatusText = transaction.paymentStatus === "paid" ? "Paid" : "Unpaid";
-            const paymentStatusClass = transaction.paymentStatus === "paid" ? "badge bg-success" : "badge bg-danger";
+            const paymentStatusClass = transaction.paymentStatus === "paid" ? "badge-success" : "badge-warning";
 
             const row = transactionTable.insertRow();
             row.innerHTML = `
@@ -62,55 +93,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${transaction.transactionId}</td>
                 <td>${transaction.customer.name}</td>
                 <td>${transaction.product.name}</td>
-                <td>${transaction.amount}</td>
+                <td>${transaction.discountedAmount}</td>
                 <td>${transaction.discount}%</td>
-                <td><span class="${paymentStatusClass}">${paymentStatusText}</span></td>
+                <td><span class="badge ${paymentStatusClass}">${paymentStatusText}</span></td>
                 <td>${transaction.paymentMethod}</td>
                 <td>${transaction.date}</td>
                 <td>
-                    <button class="btn btn-warning btn-sm" onclick="editTransaction(${index})">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${index})">
-                        <i class="fas fa-trash-alt"></i> Delete
-                    </button>
+                    <button class="btn btn-danger" onclick="deleteTransaction(${index})">Delete</button>
                 </td>
             `;
         });
     }
-
-    // Edit transaction
-    window.editTransaction = function (index) {
-        const transaction = transactions[index];
-        const modal = new bootstrap.Modal(document.getElementById("transactionModal"));
-        document.getElementById("customerName").value = transaction.customer.id;
-        document.getElementById("product").value = transaction.product.id;
-        document.getElementById("amount").value = transaction.amount;
-        document.getElementById("discount").value = transaction.discount;
-        document.getElementById("paymentStatus").value = transaction.paymentStatus;
-        document.getElementById("paymentMethod").value = transaction.paymentMethod;
-
-        // Modify the form for editing
-        transactionForm.removeEventListener("submit", saveTransaction);
-        transactionForm.addEventListener("submit", function (e) {
-            e.preventDefault();
-
-            transaction.customer = customers.find(c => c.id === document.getElementById("customerName").value);
-            transaction.product = products.find(p => p.id === document.getElementById("product").value);
-            transaction.amount = parseFloat(document.getElementById("amount").value);
-            transaction.discount = parseFloat(document.getElementById("discount").value);
-            transaction.paymentStatus = document.getElementById("paymentStatus").value;
-            transaction.paymentMethod = document.getElementById("paymentMethod").value;
-
-            transaction.discountedAmount = transaction.amount - (transaction.amount * (transaction.discount / 100));
-
-            localStorage.setItem("transactions", JSON.stringify(transactions));
-            renderTransactionTable();
-            modal.hide();
-            Swal.fire("Success", "Transaction updated successfully", "success");
-        });
-        modal.show();
-    };
 
     // Delete transaction
     window.deleteTransaction = function (index) {
@@ -130,6 +123,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     };
 
-    // Load transactions on page load
+    // Initial Render
     renderTransactionTable();
 });

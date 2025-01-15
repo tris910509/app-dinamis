@@ -1,21 +1,56 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const addCustomerBtn = document.getElementById("addCustomerBtn");
-    const customerModal = new bootstrap.Modal(document.getElementById("customerModal"));
     const customerForm = document.getElementById("customerForm");
+    const customerRole = document.getElementById("customerRole");
+    const customerDiscount = document.getElementById("customerDiscount");
     const customerTable = document.getElementById("customerTable").getElementsByTagName('tbody')[0];
     let customers = JSON.parse(localStorage.getItem("customers")) || [];
 
-    // Generate diskon berdasarkan role
-    function getDiscount(role) {
-        switch (role) {
-            case "umum": return 5;
-            case "pelsem": return 10;
-            case "pelmem": return 15;
-            default: return 0;
+    // Update discount based on role selection
+    customerRole.addEventListener("change", function () {
+        const role = customerRole.value;
+        let discount = 0;
+        if (role === "PelSem") discount = 10;
+        else if (role === "PelMem") discount = 20;
+        customerDiscount.value = `${discount}%`;
+    });
+
+    // Save customer data
+    customerForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const id = "customer-" + Date.now(); // Generate unique ID
+        const name = document.getElementById("customerName").value;
+        const email = document.getElementById("customerEmail").value;
+        const password = document.getElementById("customerPassword").value;
+        const role = customerRole.value;
+        const discount = customerDiscount.value;
+        const status = document.getElementById("customerStatus").value;
+        const photoInput = document.getElementById("customerPhoto");
+        let photo = "";
+
+        if (photoInput.files.length > 0) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                photo = event.target.result;
+                saveCustomer(id, name, email, password, role, discount, status, photo);
+            };
+            reader.readAsDataURL(photoInput.files[0]);
+        } else {
+            saveCustomer(id, name, email, password, role, discount, status, photo);
         }
+    });
+
+    // Save to localStorage and render table
+    function saveCustomer(id, name, email, password, role, discount, status, photo) {
+        customers.push({ id, name, email, password, role, discount, status, photo });
+        localStorage.setItem("customers", JSON.stringify(customers));
+        renderCustomerTable();
+        customerForm.reset();
+        Swal.fire("Success", "Customer added successfully", "success");
+        bootstrap.Modal.getInstance(document.getElementById("customerModal")).hide();
     }
 
-    // Render tabel pelanggan
+    // Render customers table
     function renderCustomerTable() {
         customerTable.innerHTML = "";
         customers.forEach((customer, index) => {
@@ -26,10 +61,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${customer.name}</td>
                 <td>${customer.email}</td>
                 <td>${customer.password}</td>
-                <td>${customer.status}</td>
                 <td>${customer.role}</td>
-                <td>${customer.discount}%</td>
-                <td><img src="${customer.photo}" alt="photo" width="50" height="50"></td>
+                <td>${customer.discount}</td>
+                <td>${customer.status}</td>
+                <td><img src="${customer.photo}" alt="Photo" width="50" height="50"></td>
                 <td>
                     <button class="btn btn-warning btn-sm" onclick="editCustomer(${index})">
                         <i class="fas fa-edit"></i> Edit
@@ -42,53 +77,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Tambah pelanggan baru
-    customerForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        const name = document.getElementById("customerName").value;
-        const email = document.getElementById("customerEmail").value;
-        const password = document.getElementById("customerPassword").value;
-        const status = document.getElementById("customerStatus").value;
-        const role = document.getElementById("customerRole").value;
-        const photoInput = document.getElementById("customerPhoto");
-        const id = `customer-${Date.now()}`;
-        const discount = getDiscount(role);
-
-        let photo = "";
-        if (photoInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function () {
-                photo = reader.result;
-                saveCustomer(id, name, email, password, status, role, discount, photo);
-            };
-            reader.readAsDataURL(photoInput.files[0]);
-        } else {
-            saveCustomer(id, name, email, password, status, role, discount, photo);
-        }
-    });
-
-    function saveCustomer(id, name, email, password, status, role, discount, photo) {
-        customers.push({ id, name, email, password, status, role, discount, photo });
-        localStorage.setItem("customers", JSON.stringify(customers));
-        customerForm.reset();
-        customerModal.hide();
-        renderCustomerTable();
-        Swal.fire("Success", "Customer added successfully!", "success");
-    }
-
-    // Edit pelanggan
-    window.editCustomer = function (index) {
-        Swal.fire("Editing is not implemented in this demo.");
-    };
-
-    // Hapus pelanggan
-    window.deleteCustomer = function (index) {
-        customers.splice(index, 1);
-        localStorage.setItem("customers", JSON.stringify(customers));
-        renderCustomerTable();
-        Swal.fire("Deleted!", "Customer has been removed.", "success");
-    };
-
-    // Render tabel saat halaman dimuat
+    // Load customers on page load
     renderCustomerTable();
 });

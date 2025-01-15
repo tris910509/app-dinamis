@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const userPassword = document.getElementById("userPassword").value;
         const userAddress = document.getElementById("userAddress").value;
         const userStatus = document.getElementById("userStatus").checked;
-        const userRole = document.getElementById("userRole").value; // Get Role from select input
+        const userRole = document.getElementById("userRole").value;
 
         if (!userName || !userEmail || !userPassword || !userAddress) {
             Swal.fire("Error", "All fields are required", "error");
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("userPassword").value = ""; // For security, do not prefill password
         document.getElementById("userAddress").value = user.address;
         document.getElementById("userStatus").checked = user.status;
-        document.getElementById("userRole").value = user.role; // Set the role in the select input
+        document.getElementById("userRole").value = user.role;
         userModal.show();
 
         // Handle Save
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 password: CryptoJS.SHA256(document.getElementById("userPassword").value).toString(CryptoJS.enc.Base64),
                 address: document.getElementById("userAddress").value,
                 status: document.getElementById("userStatus").checked,
-                role: document.getElementById("userRole").value // Update role
+                role: document.getElementById("userRole").value
             };
             localStorage.setItem("users", JSON.stringify(users));
             userModal.hide();

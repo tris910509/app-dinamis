@@ -4,38 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.16/dist/sweetalert2.all.min.js"></script>
 </head>
 <body>
     <div class="container mt-5">
         <h2>Customer Management</h2>
-        <button class="btn btn-primary" id="addCustomerBtn">Add Customer</button> 
-        <table class="table table-striped mt-3" id="customerTable">
+        <button class="btn btn-primary mb-3" id="addCustomerBtn">Add Customer</button>
+        <table class="table table-bordered table-striped" id="customerTable">
             <thead>
                 <tr>
                     <th>No</th>
                     <th>ID</th>
                     <th>Name</th>
                     <th>Email</th>
-                    <th>Address</th>
-                    <th>Phone</th>
+                    <th>Password</th>
+                    <th>Status</th>
+                    <th>Role</th>
+                    <th>Discount</th>
+                    <th>Photo</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Customer Rows will be inserted here -->
+                <!-- Data will be dynamically added here -->
             </tbody>
         </table>
     </div>
 
-    <!-- Modal to Add/Edit Customer -->
-    <div class="modal" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
+    <!-- Modal -->
+    <div class="modal" id="customerModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="customerModalLabel">Add Customer</h5>
+                    <h5 class="modal-title">Add Customer</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -49,21 +52,36 @@
                             <input type="email" class="form-control" id="customerEmail" required>
                         </div>
                         <div class="mb-3">
-                            <label for="customerAddress" class="form-label">Address</label>
-                            <textarea class="form-control" id="customerAddress" required></textarea>
+                            <label for="customerPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="customerPassword" required>
                         </div>
                         <div class="mb-3">
-                            <label for="customerPhone" class="form-label">Phone</label>
-                            <input type="text" class="form-control" id="customerPhone" required>
+                            <label for="customerStatus" class="form-label">Status</label>
+                            <select class="form-control" id="customerStatus">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">Save Customer</button>
+                        <div class="mb-3">
+                            <label for="customerRole" class="form-label">Role</label>
+                            <select class="form-control" id="customerRole">
+                                <option value="umum">Umum</option>
+                                <option value="pelsem">Pelsem</option>
+                                <option value="pelmem">Pelmem</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="customerPhoto" class="form-label">Photo</label>
+                            <input type="file" class="form-control" id="customerPhoto" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/customers.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

@@ -48,12 +48,24 @@
                 <div class="modal-body">
                     <form id="transactionForm">
                         <div class="mb-3">
+                            <label for="role" class="form-label">Role</label>
+                            <select class="form-control" id="role" required>
+                                <option value="umum">Umum</option>
+                                <option value="pelsem">Pelsem</option>
+                                <option value="pelmem">Pelmem</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="customerSection">
                             <label for="customerName" class="form-label">Customer</label>
-                            <select class="form-control" id="customerName" required></select>
+                            <select class="form-control" id="customerName" required disabled>
+                                <!-- Customers will be dynamically populated here -->
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="product" class="form-label">Product</label>
-                            <select class="form-control" id="product" required></select>
+                            <select class="form-control" id="product" required>
+                                <!-- Products will be dynamically populated here -->
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="amount" class="form-label">Amount</label>
@@ -86,6 +98,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/transaction.js"></script>
+    <script src="transaction.js"></script>
 </body>
 </html>

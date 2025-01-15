@@ -15,43 +15,39 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Save customer data
-    customerForm.addEventListener("submit", function (e) {
+    customerForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const index = document.getElementById("customerIndex").value;
-        const id = index ? customers[index].id : "customer-" + Date.now();
+        const id = "customer-" + Date.now(); // Generate unique ID
         const name = document.getElementById("customerName").value;
         const email = document.getElementById("customerEmail").value;
         const password = document.getElementById("customerPassword").value;
+        const hashedPassword = CryptoJS.SHA256(password).toString(); // Hash password
         const role = customerRole.value;
         const discount = customerDiscount.value;
         const status = document.getElementById("customerStatus").value;
         const photoInput = document.getElementById("customerPhoto");
-        let photo = index ? customers[index].photo : "";
+        let photo = "";
 
         if (photoInput.files.length > 0) {
             const reader = new FileReader();
             reader.onload = function (event) {
                 photo = event.target.result;
-                saveCustomer(index, id, name, email, password, role, discount, status, photo);
+                saveCustomer(id, name, email, hashedPassword, role, discount, status, photo);
             };
             reader.readAsDataURL(photoInput.files[0]);
         } else {
-            saveCustomer(index, id, name, email, password, role, discount, status, photo);
+            saveCustomer(id, name, email, hashedPassword, role, discount, status, photo);
         }
     });
 
     // Save to localStorage and render table
-    function saveCustomer(index, id, name, email, password, role, discount, status, photo) {
-        if (index) {
-            customers[index] = { id, name, email, password, role, discount, status, photo };
-        } else {
-            customers.push({ id, name, email, password, role, discount, status, photo });
-        }
+    function saveCustomer(id, name, email, password, role, discount, status, photo) {
+        customers.push({ id, name, email, password, role, discount, status, photo });
         localStorage.setItem("customers", JSON.stringify(customers));
         renderCustomerTable();
         customerForm.reset();
-        Swal.fire("Success", "Customer saved successfully", "success");
+        Swal.fire("Success", "Customer added successfully", "success");
         bootstrap.Modal.getInstance(document.getElementById("customerModal")).hide();
     }
 
@@ -69,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${customer.role}</td>
                 <td>${customer.discount}</td>
                 <td>${customer.status}</td>
-                <td><img src="${customer.photo}" alt="Photo" width="50" height="50"></td>
+                <td>${customer.photo ? `<img src="${customer.photo}" alt="Photo" width="50" height="50">` : "No Photo"}</td>
                 <td>
                     <button class="btn btn-warning btn-sm" onclick="editCustomer(${index})">
                         <i class="fas fa-edit"></i> Edit
@@ -81,39 +77,6 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
         });
     }
-
-    // Edit customer
-    window.editCustomer = function (index) {
-        const customer = customers[index];
-        document.getElementById("customerIndex").value = index;
-        document.getElementById("customerName").value = customer.name;
-        document.getElementById("customerEmail").value = customer.email;
-        document.getElementById("customerPassword").value = customer.password;
-        document.getElementById("customerRole").value = customer.role;
-        customerDiscount.value = customer.discount;
-        document.getElementById("customerStatus").value = customer.status;
-        bootstrap.Modal.getInstance(document.getElementById("customerModal")).show();
-    };
-
-    // Delete customer
-    window.deleteCustomer = function (index) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "You won't be able to revert this!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                customers.splice(index, 1);
-                localStorage.setItem("customers", JSON.stringify(customers));
-                renderCustomerTable();
-                Swal.fire("Deleted!", "Customer has been deleted.", "success");
-            }
-        });
-    };
 
     // Load customers on page load
     renderCustomerTable();

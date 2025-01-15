@@ -33,7 +33,9 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>Id Users</th>
                     <th>Name</th>
+                    <th>Password</th>
                     <th>Email</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -59,6 +61,15 @@
                             <label for="userName" class="form-label">Name</label>
                             <input type="text" class="form-control" id="userName" required>
                         </div>
+                        <div class="mb-3">
+                            <label for="userRole" class="form-label">Role</label>
+                               <select id="userRole" class="form-select">
+                                 <option value="admin">Admin</option>
+                                 <option value="kasir">Kasir</option>
+                                 <option value="other">Other</option>
+                               </select>
+                         </div>
+
                         <div class="mb-3">
                             <label for="userEmail" class="form-label">Email</label>
                             <input type="email" class="form-control" id="userEmail" required>

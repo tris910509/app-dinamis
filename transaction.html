@@ -10,80 +10,95 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Transaction Management</h1>
-        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#transactionModal">
-            <i class="fas fa-plus"></i> Add Transaction
-        </button>
+    <!-- Header -->
+    <h1 class="text-center">Transaction Management</h1>
 
-        <!-- Tabel Transaksi -->
-        <table class="table table-striped mt-3" id="transactionTable">
+    <!-- Form Transaksi -->
+    <div class="card mt-3">
+        <div class="card-header">Add Transaction</div>
+        <div class="card-body">
+            <form id="transactionForm">
+                <!-- Role -->
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role</label>
+                    <select class="form-control" id="role" required>
+                        <option value="umum">Umum</option>
+                        <option value="pelsem">Pelsem</option>
+                        <option value="pelmem">Pelmem</option>
+                    </select>
+                </div>
+
+                <!-- Customer -->
+                <div class="mb-3">
+                    <label for="customer" class="form-label">Customer</label>
+                    <select class="form-control" id="customer" required></select>
+                    <button type="button" id="addCustomerBtn" class="btn btn-link">Add New Customer</button>
+                </div>
+
+                <!-- Product -->
+                <div class="mb-3">
+                    <label for="product" class="form-label">Product</label>
+                    <select class="form-control" id="product" required></select>
+                </div>
+
+                <!-- Amount -->
+                <div class="mb-3">
+                    <label for="amount" class="form-label">Amount</label>
+                    <input type="number" class="form-control" id="amount" min="1" required>
+                </div>
+
+                <!-- Discount -->
+                <div class="mb-3">
+                    <label for="discount" class="form-label">Discount (%)</label>
+                    <input type="number" class="form-control" id="discount" min="0" max="100" required>
+                </div>
+
+                <!-- Payment -->
+                <div class="mb-3">
+                    <label for="paymentMethod" class="form-label">Payment Method</label>
+                    <select class="form-control" id="paymentMethod" required>
+                        <option value="cash">Cash</option>
+                        <option value="credit_card">Credit Card</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                    </select>
+                </div>
+
+                <!-- Payment Status -->
+                <div class="mb-3">
+                    <label for="paymentStatus" class="form-label">Payment Status</label>
+                    <select class="form-control" id="paymentStatus" required>
+                        <option value="unpaid">Unpaid</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabel Transaksi -->
+    <div class="mt-5">
+        <h3>Transaction List</h3>
+        <table class="table table-striped" id="transactionTable">
             <thead>
                 <tr>
                     <th>No</th>
-                    <th>Transaction ID</th>
-                    <th>Customer Name</th>
+                    <th>Customer</th>
                     <th>Product</th>
                     <th>Amount</th>
                     <th>Discount</th>
-                    <th>Payment Status</th>
-                    <th>Payment Method</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
                     <th>Date</th>
-                    <th>Actions</th>
+                    <th>Action</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Transaction Rows will be dynamically added here -->
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
-
-    <!-- Modal Transaksi -->
-    <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="transactionModalLabel">Add Transaction</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="transactionForm">
-                        <div class="mb-3">
-                            <label for="customerName" class="form-label">Customer</label>
-                            <select class="form-control" id="customerName" required></select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="product" class="form-label">Product</label>
-                            <select class="form-control" id="product" required></select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Amount</label>
-                            <input type="number" class="form-control" id="amount" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="discount" class="form-label">Discount (%)</label>
-                            <input type="number" class="form-control" id="discount" min="0" max="100" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="paymentStatus" class="form-label">Payment Status</label>
-                            <select class="form-control" id="paymentStatus" required>
-                                <option value="unpaid">Unpaid</option>
-                                <option value="paid">Paid</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="paymentMethod" class="form-label">Payment Method</label>
-                            <select class="form-control" id="paymentMethod" required>
-                                <option value="cash">Cash</option>
-                                <option value="credit_card">Credit Card</option>
-                                <option value="bank_transfer">Bank Transfer</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/transaction.js"></script>

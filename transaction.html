@@ -10,18 +10,17 @@
 </head>
 <body>
     <div class="container mt-5">
-    <div class="container mt-5">
-    <h1 class="text-center">Transaction Module</h1>
+    <h1 class="text-center">Modul Transaksi</h1>
 
     <!-- Tombol Tambah Transaksi -->
     <button id="addTransactionBtn" class="btn btn-primary mb-3">Tambah Transaksi</button>
 
-    <!-- Form Transaksi -->
+    <!-- Form Tambah Transaksi -->
     <div id="transactionForm" class="card d-none">
         <div class="card-header">Tambah Transaksi</div>
         <div class="card-body">
             <form id="transactionFormContent">
-                <!-- Role -->
+                <!-- Pilih Role -->
                 <div class="mb-3">
                     <label for="role" class="form-label">Role</label>
                     <select class="form-control" id="role" required>
@@ -31,26 +30,24 @@
                     </select>
                 </div>
 
-                <!-- Customer -->
+                <!-- Form Customer -->
                 <div id="customerSection" class="mb-3">
                     <label for="customer" class="form-label">Customer</label>
                     <select class="form-control" id="customer" required></select>
                     <button type="button" id="addCustomerBtn" class="btn btn-link d-none">Tambah Pelanggan Baru</button>
                 </div>
 
-                <!-- Product -->
+                <!-- Dropdown Produk -->
                 <div class="mb-3">
                     <label for="product" class="form-label">Produk</label>
                     <select class="form-control" id="product" required></select>
                 </div>
 
-                <!-- Jumlah -->
+                <!-- Jumlah dan Diskon -->
                 <div class="mb-3">
                     <label for="quantity" class="form-label">Jumlah</label>
                     <input type="number" class="form-control" id="quantity" min="1" required>
                 </div>
-
-                <!-- Diskon -->
                 <div class="mb-3">
                     <label for="discountSwitch" class="form-label">Diskon</label>
                     <div>
@@ -58,7 +55,7 @@
                         <input type="checkbox" id="discountSwitch" class="form-check-input">
                         <label class="form-check-label ms-2">%</label>
                     </div>
-                    <input type="number" class="form-control mt-2" id="discountValue" min="0" required>
+                    <input type="number" class="form-control mt-2" id="discountValue" min="0">
                 </div>
 
                 <!-- Tabel Keranjang -->

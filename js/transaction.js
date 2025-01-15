@@ -1,20 +1,47 @@
 document.addEventListener("DOMContentLoaded", function () {
     const transactionForm = document.getElementById("transactionForm");
     const transactionTable = document.getElementById("transactionTable").getElementsByTagName('tbody')[0];
+    const customers = JSON.parse(localStorage.getItem("customers")) || [];
+    const products = JSON.parse(localStorage.getItem("products")) || [];
     let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+
+    // Populate Customer and Product dropdown
+    const customerSelect = document.getElementById("customerName");
+    customers.forEach(customer => {
+        const option = document.createElement("option");
+        option.value = customer.id;
+        option.textContent = customer.name;
+        customerSelect.appendChild(option);
+    });
+
+    const productSelect = document.getElementById("product");
+    products.forEach(product => {
+        const option = document.createElement("option");
+        option.value = product.id;
+        option.textContent = product.name;
+        productSelect.appendChild(option);
+    });
 
     // Save transaction
     transactionForm.addEventListener("submit", function (e) {
         e.preventDefault();
 
         const transactionId = "transaction-" + Date.now(); // Generate unique ID
-        const customerName = document.getElementById("customerName").value;
-        const product = document.getElementById("product").value;
+        const customerId = document.getElementById("customerName").value;
+        const productId = document.getElementById("product").value;
         const amount = parseFloat(document.getElementById("amount").value);
+        const discount = parseFloat(document.getElementById("discount").value);
         const paymentStatus = document.getElementById("paymentStatus").value;
+        const paymentMethod = document.getElementById("paymentMethod").value;
         const date = new Date().toLocaleString();
 
-        transactions.push({ transactionId, customerName, product, amount, paymentStatus, date });
+        const customer = customers.find(c => c.id === customerId);
+        const product = products.find(p => p.id === productId);
+
+        // Calculate discounted amount
+        const discountedAmount = amount - (amount * (discount / 100));
+
+        transactions.push({ transactionId, customer, product, amount, discount, discountedAmount, paymentStatus, paymentMethod, date });
         localStorage.setItem("transactions", JSON.stringify(transactions));
         renderTransactionTable();
         transactionForm.reset();
@@ -33,10 +60,12 @@ document.addEventListener("DOMContentLoaded", function () {
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${transaction.transactionId}</td>
-                <td>${transaction.customerName}</td>
-                <td>${transaction.product}</td>
+                <td>${transaction.customer.name}</td>
+                <td>${transaction.product.name}</td>
                 <td>${transaction.amount}</td>
+                <td>${transaction.discount}%</td>
                 <td><span class="${paymentStatusClass}">${paymentStatusText}</span></td>
+                <td>${transaction.paymentMethod}</td>
                 <td>${transaction.date}</td>
                 <td>
                     <button class="btn btn-warning btn-sm" onclick="editTransaction(${index})">
@@ -54,20 +83,26 @@ document.addEventListener("DOMContentLoaded", function () {
     window.editTransaction = function (index) {
         const transaction = transactions[index];
         const modal = new bootstrap.Modal(document.getElementById("transactionModal"));
-        document.getElementById("customerName").value = transaction.customerName;
-        document.getElementById("product").value = transaction.product;
+        document.getElementById("customerName").value = transaction.customer.id;
+        document.getElementById("product").value = transaction.product.id;
         document.getElementById("amount").value = transaction.amount;
+        document.getElementById("discount").value = transaction.discount;
         document.getElementById("paymentStatus").value = transaction.paymentStatus;
+        document.getElementById("paymentMethod").value = transaction.paymentMethod;
 
         // Modify the form for editing
         transactionForm.removeEventListener("submit", saveTransaction);
         transactionForm.addEventListener("submit", function (e) {
             e.preventDefault();
 
-            transaction.customerName = document.getElementById("customerName").value;
-            transaction.product = document.getElementById("product").value;
+            transaction.customer = customers.find(c => c.id === document.getElementById("customerName").value);
+            transaction.product = products.find(p => p.id === document.getElementById("product").value);
             transaction.amount = parseFloat(document.getElementById("amount").value);
+            transaction.discount = parseFloat(document.getElementById("discount").value);
             transaction.paymentStatus = document.getElementById("paymentStatus").value;
+            transaction.paymentMethod = document.getElementById("paymentMethod").value;
+
+            transaction.discountedAmount = transaction.amount - (transaction.amount * (transaction.discount / 100));
 
             localStorage.setItem("transactions", JSON.stringify(transactions));
             renderTransactionTable();

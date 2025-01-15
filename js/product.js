@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const productForm = document.getElementById("productForm");
     const productTable = document.getElementById("productTable").getElementsByTagName('tbody')[0];
     const productCategory = document.getElementById("productCategory");
-
+    const productPhoto = document.getElementById("productPhoto");
     let categories = JSON.parse(localStorage.getItem("categories")) || [];
     let products = JSON.parse(localStorage.getItem("products")) || [];
 
@@ -23,8 +23,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const category = document.getElementById("productCategory").value;
         const price = document.getElementById("productPrice").value;
         const stock = document.getElementById("productStock").value;
+        const status = document.getElementById("productStatus").value;
 
-        products.push({ id, name, category, price, stock });
+        // Get the selected file for photo
+        const photoFile = productPhoto.files[0];
+        const photoURL = photoFile ? URL.createObjectURL(photoFile) : "";
+
+        products.push({ id, name, category, price, stock, status, photoURL });
         localStorage.setItem("products", JSON.stringify(products));
         renderProductTable();
         productForm.reset();
@@ -36,8 +41,11 @@ document.addEventListener("DOMContentLoaded", function () {
     function renderProductTable() {
         productTable.innerHTML = "";
         products.forEach((product, index) => {
-            const row = productTable.insertRow();
             const categoryName = categories.find(cat => cat.id === product.category)?.name || "Unknown";
+            const statusText = product.status === "active" ? "Active" : "Inactive";
+            const statusClass = product.status === "active" ? "badge bg-success" : "badge bg-danger";
+
+            const row = productTable.insertRow();
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${product.id}</td>
@@ -45,6 +53,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${categoryName}</td>
                 <td>${product.price}</td>
                 <td>${product.stock}</td>
+                <td><span class="${statusClass}">${statusText}</span></td>
+                <td><img src="${product.photoURL}" alt="Product Photo" width="50"></td>
                 <td>
                     <button class="btn btn-warning btn-sm" onclick="editProduct(${index})">
                         <i class="fas fa-edit"></i> Edit
@@ -65,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("productName").value = product.name;
         document.getElementById("productPrice").value = product.price;
         document.getElementById("productStock").value = product.stock;
-
+        document.getElementById("productStatus").value = product.status;
         productCategory.value = category ? category.id : "";
 
         // Modify the form for editing
@@ -76,6 +86,12 @@ document.addEventListener("DOMContentLoaded", function () {
             product.name = document.getElementById("productName").value;
             product.price = document.getElementById("productPrice").value;
             product.stock = document.getElementById("productStock").value;
+            product.status = document.getElementById("productStatus").value;
+
+            const newPhotoFile = productPhoto.files[0];
+            if (newPhotoFile) {
+                product.photoURL = URL.createObjectURL(newPhotoFile);
+            }
 
             localStorage.setItem("products", JSON.stringify(products));
             renderProductTable();

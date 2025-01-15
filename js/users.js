@@ -11,10 +11,15 @@ document.addEventListener("DOMContentLoaded", function () {
         users.forEach((user, index) => {
             const row = userTable.insertRow();
             row.innerHTML = `
-                <td>${index + 1}</td>
+                <td>${user.id}</td> <!-- Display User ID -->
+                <td>${index + 1}</td> <!-- Display Index as a sequence number -->
                 <td>${user.name}</td>
                 <td>${user.email}</td>
-                <td><span class="badge bg-${user.status ? 'success' : 'danger'}">${user.status ? 'Active' : 'Inactive'}</span></td>
+                <td>
+                    <span class="badge bg-${user.status ? 'success' : 'danger'}">
+                        ${user.status ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
                 <td>
                     <button class="btn btn-warning btn-sm" onclick="editUser(${index})">
                         <i class="fas fa-edit"></i> Edit

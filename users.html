@@ -29,28 +29,30 @@
         </button>
 
         <!-- Table for User CRUD -->
-        <table class="table mt-3" id="userTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Id Users</th>
-                    <th>Name</th>
-                    <th>Password</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Peran</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Data will be added dynamically -->
-            </tbody>
-        </table>
-    </div>
+        <!-- Tabel Pengguna -->
+<table class="table table-striped" id="userTable">
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>ID User</th>
+            <th>Nama</th>
+            <th>Password</th>
+            <th>Email</th>
+            <th>Alamat</th>
+            <th>Status</th>
+            <th>Role</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Data pengguna akan ditambahkan di sini -->
+    </tbody>
+</table>
 
-    <!-- Modal for User Form -->
-    
-    <!-- Modal untuk Menambahkan/Edit Pengguna -->
+<!-- Tombol untuk Menambah Pengguna -->
+<button class="btn btn-primary" id="addUserBtn">Tambah Pengguna</button>
+
+<!-- Modal untuk Menambah/Edit Pengguna -->
 <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -93,6 +95,8 @@
             </div>
         </div>
     </div>
+</div>
+
 </div>
 
 

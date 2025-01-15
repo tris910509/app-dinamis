@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome (Icons) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.16/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <style>
+        .card { margin-bottom: 1rem; }
+        .dashboard-stats .card-body { text-align: center; }
+        .dashboard-stats .card-body h4 { font-size: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Dashboard</h2>
+
+        <!-- Dashboard Statistics -->
+        <div class="row dashboard-stats">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">Total Users</div>
+                    <div class="card-body">
+                        <h4 id="totalUsers">0</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">Active Users</div>
+                    <div class="card-body">
+                        <h4 id="activeUsers">0</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">Inactive Users</div>
+                    <div class="card-body">
+                        <h4 id="inactiveUsers">0</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add User Button -->
+        <button class="btn btn-primary mt-3" id="addUserBtn">Add User</button>
+
+        <!-- User Table -->
+        <table class="table table-striped mt-3" id="userTable">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>ID User</th>
+                    <th>Name</th>
+                    <th>Password</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- User Rows will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal to Add/Edit User -->
+    <div class="modal" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalLabel">Add User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="userForm">
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="userName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="userEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="userPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userAddress" class="form-label">Address</label>
+                            <textarea class="form-control" id="userAddress" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userStatus" class="form-label">Status</label>
+                            <input type="checkbox" id="userStatus" class="form-check-input">
+                        </div>
+                        <div class="mb-3">
+                            <label for="userRole" class="form-label">Role</label>
+                            <select id="userRole" class="form-select">
+                                <option value="admin">Admin</option>
+                                <option value="kasir">Kasir</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save User</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.16/dist/sweetalert2.all.min.js"></script>
+    <!-- CryptoJS (for SHA256 hashing) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="dashboard.js"></script>
+</body>
+</html>

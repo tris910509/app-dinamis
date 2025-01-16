@@ -1,101 +1,161 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const transactionForm = document.getElementById("transactionForm");
-    const transactionTable = document.getElementById("transactionTable").getElementsByTagName('tbody')[0];
-    let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+    const cartTable = document.getElementById("cartTable").getElementsByTagName('tbody')[0];
+    const totalAmountElement = document.getElementById("totalAmount");
+    const totalDiscountedElement = document.getElementById("totalDiscounted");
+    const customerSelect = document.getElementById("customerSelect");
+    const discountInput = document.getElementById("discount");
+    const paymentStageInput = document.getElementById("paymentStage");
+    const confirmPaymentButton = document.getElementById("confirmPayment");
+    const addPaymentStageButton = document.getElementById("addPaymentStage");
 
-    // Save transaction
-    transactionForm.addEventListener("submit", function (e) {
-        e.preventDefault();
+    let cart = [];
+    let products = JSON.parse(localStorage.getItem("products")) || [];
+    let customers = JSON.parse(localStorage.getItem("customers")) || [];
+    let paymentStages = [];
+    let totalAmount = 0;
 
-        const id = "txn-" + Date.now(); // Generate unique transaction ID
-        const product = document.getElementById("product").value;
-        const quantity = document.getElementById("quantity").value;
-        const price = document.getElementById("price").value;
-        const status = document.getElementById("status").value;
-        const total = quantity * price;
-
-        transactions.push({ id, product, quantity, price, total, status });
-        localStorage.setItem("transactions", JSON.stringify(transactions));
-        renderTransactionTable();
-        transactionForm.reset();
-        Swal.fire("Success", "Transaction added successfully", "success");
-        bootstrap.Modal.getInstance(document.getElementById("transactionModal")).hide();
+    // Load customers to the customer select dropdown
+    customers.forEach(customer => {
+        const option = document.createElement("option");
+        option.value = customer.id;
+        option.textContent = customer.name;
+        customerSelect.appendChild(option);
     });
 
-    // Render transaction table
-    function renderTransactionTable() {
-        transactionTable.innerHTML = "";
-        transactions.forEach((transaction, index) => {
-            const statusText = transaction.status === "paid" ? "Paid" : "Unpaid";
-            const statusClass = transaction.status === "paid" ? "badge bg-success" : "badge bg-danger";
+    // Load products into the product selection modal
+    const productList = document.getElementById("productList");
+    products.forEach(product => {
+        const listItem = document.createElement("li");
+        listItem.classList.add("d-flex", "justify-content-between", "align-items-center");
+        listItem.innerHTML = `
+            <span>${product.name} - Rp ${product.price} (Stok: ${product.stock})</span>
+            <button class="btn btn-sm btn-primary addProductButton" data-id="${product.id}">Tambah</button>
+        `;
+        productList.appendChild(listItem);
+    });
 
-            const row = transactionTable.insertRow();
+    // Add product to the cart
+    productList.addEventListener("click", function (e) {
+        if (e.target.classList.contains("addProductButton")) {
+            const productId = e.target.getAttribute("data-id");
+            const product = products.find(p => p.id === productId);
+            if (product && product.stock > 0) {
+                const existingProductInCart = cart.find(item => item.id === productId);
+                if (existingProductInCart) {
+                    existingProductInCart.quantity++;
+                } else {
+                    cart.push({ ...product, quantity: 1 });
+                }
+                product.stock--; // Reduce stock
+                renderCart();
+                checkLowStock(product);
+            } else {
+                Swal.fire("Stok Habis", "Produk ini sudah tidak tersedia dalam jumlah yang cukup.", "error");
+            }
+        }
+    });
+
+    // Render cart table
+    function renderCart() {
+        cartTable.innerHTML = "";
+        totalAmount = 0;
+        cart.forEach((item, index) => {
+            const row = cartTable.insertRow();
             row.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${transaction.id}</td>
-                <td>${transaction.product}</td>
-                <td>${transaction.quantity}</td>
-                <td>${transaction.price}</td>
-                <td>${transaction.total}</td>
-                <td><span class="${statusClass}">${statusText}</span></td>
-                <td>
-                    <button class="btn btn-warning btn-sm" onclick="editTransaction(${index})">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${index})">
-                        <i class="fas fa-trash-alt"></i> Delete
-                    </button>
-                </td>
+                <td>${item.name}</td>
+                <td>Rp ${item.price}</td>
+                <td><input type="number" class="form-control" value="${item.quantity}" min="1" data-index="${index}" onchange="updateQuantity(event)"></td>
+                <td>Rp ${item.price * item.quantity}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Hapus</button></td>
             `;
+            totalAmount += item.price * item.quantity;
         });
+
+        const discount = parseFloat(discountInput.value) || 0;
+        const discountedAmount = totalAmount - (totalAmount * (discount / 100));
+        totalDiscountedElement.textContent = `Rp ${discountedAmount}`;
+        totalAmountElement.textContent = `Rp ${totalAmount}`;
     }
 
-    // Edit transaction
-    window.editTransaction = function (index) {
-        const transaction = transactions[index];
-        const modal = new bootstrap.Modal(document.getElementById("transactionModal"));
-        document.getElementById("product").value = transaction.product;
-        document.getElementById("quantity").value = transaction.quantity;
-        document.getElementById("price").value = transaction.price;
-        document.getElementById("status").value = transaction.status;
-
-        // Modify the form for editing
-        transactionForm.removeEventListener("submit", saveTransaction);
-        transactionForm.addEventListener("submit", function (e) {
-            e.preventDefault();
-
-            transaction.product = document.getElementById("product").value;
-            transaction.quantity = document.getElementById("quantity").value;
-            transaction.price = document.getElementById("price").value;
-            transaction.status = document.getElementById("status").value;
-            transaction.total = transaction.quantity * transaction.price;
-
-            localStorage.setItem("transactions", JSON.stringify(transactions));
-            renderTransactionTable();
-            modal.hide();
-            Swal.fire("Success", "Transaction updated successfully", "success");
-        });
-        modal.show();
+    // Update product quantity
+    window.updateQuantity = function (event) {
+        const index = event.target.getAttribute("data-index");
+        const quantity = parseInt(event.target.value);
+        if (quantity > 0) {
+            cart[index].quantity = quantity;
+            renderCart();
+        }
     };
 
-    // Delete transaction
-    window.deleteTransaction = function (index) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This action cannot be undone.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                transactions.splice(index, 1);
-                localStorage.setItem("transactions", JSON.stringify(transactions));
-                renderTransactionTable();
-                Swal.fire("Deleted!", "Transaction has been deleted.", "success");
-            }
-        });
+    // Remove product from cart
+    window.removeFromCart = function (index) {
+        const product = cart[index];
+        products.find(p => p.id === product.id).stock += product.quantity; // Restore stock
+        cart.splice(index, 1);
+        renderCart();
     };
 
-    // Load transactions on page load
-    renderTransactionTable();
+    // Check low stock for products
+    function checkLowStock(product) {
+        if (product.stock <= 5) {
+            Swal.fire({
+                title: "Stok Produk Rendah",
+                text: `Stok produk ${product.name} hampir habis!`,
+                icon: "warning",
+            });
+        }
+    }
+
+    // Add payment stage
+    addPaymentStageButton.addEventListener("click", function () {
+        const paymentAmount = parseFloat(paymentStageInput.value);
+        if (paymentAmount > 0 && paymentAmount <= totalAmount) {
+            paymentStages.push(paymentAmount);
+            totalAmount -= paymentAmount;
+            renderCart();
+            Swal.fire("Pembayaran Bertahap", `Rp ${paymentAmount} telah dibayar. Sisa: Rp ${totalAmount}`, "success");
+        } else {
+            Swal.fire("Error", "Jumlah pembayaran tidak valid", "error");
+        }
+    });
+
+    // Confirm payment and finalize transaction
+    confirmPaymentButton.addEventListener("click", function () {
+        if (cart.length === 0) {
+            Swal.fire("Error", "Keranjang belanja kosong", "error");
+            return;
+        }
+
+        const customerId = customerSelect.value;
+        if (!customerId) {
+            Swal.fire("Error", "Pilih pelanggan terlebih dahulu", "error");
+            return;
+        }
+
+        const transaction = {
+            id: "txn-" + Date.now(),
+            customerId: customerId,
+            items: cart,
+            total: totalAmount,
+            discount: parseFloat(discountInput.value) || 0,
+            status: "Lunas",
+            paymentStages: paymentStages,
+            date: new Date().toLocaleString(),
+        };
+
+        const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+        transactions.push(transaction);
+        localStorage.setItem("transactions", JSON.stringify(transactions));
+
+        // Clear cart and reset form
+        cart = [];
+        paymentStages = [];
+        discountInput.value = '';
+        paymentStageInput.value = '';
+        customerSelect.value = '';
+        renderCart();
+
+        Swal.fire("Success", "Transaksi berhasil", "success");
+    });
 });

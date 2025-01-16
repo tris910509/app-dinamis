@@ -3,92 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transaksi</title>
+    <title>Transaction Management</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Halaman Transaksi</h1>
+        <h1>Transaction Management</h1>
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#transactionModal">
+            <i class="fas fa-plus"></i> Add Transaction
+        </button>
 
-        <!-- Form Input Transaksi -->
-        <form id="transactionForm">
-            <div class="mb-3">
-                <label for="customerName" class="form-label">Nama Customer</label>
-                <input type="text" class="form-control" id="customerName" placeholder="Nama Customer" required>
-            </div>
-            <div class="mb-3">
-                <label for="roleSelect" class="form-label">Pilih Peran</label>
-                <select class="form-control" id="roleSelect">
-                    <option value="umum">Umum</option>
-                    <option value="pelsem">Pelanggan Semester</option>
-                    <option value="pelmem">Pelanggan Member</option>
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label for="productSelect" class="form-label">Pilih Produk</label>
-                <select class="form-control" id="productSelect">
-                    <!-- Produk akan di-load menggunakan JavaScript -->
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label for="quantity" class="form-label">Jumlah</label>
-                <input type="number" class="form-control" id="quantity" value="1" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="discount" class="form-label">Diskon (%)</label>
-                <input type="number" class="form-control" id="discount" value="0" min="0" max="100">
-            </div>
-
-            <button type="submit" class="btn btn-primary">Tambah ke Keranjang</button>
-        </form>
-
-        <!-- Keranjang Belanja -->
-        <h3 class="mt-5">Keranjang Belanja</h3>
-        <table class="table" id="cartTable">
+        <!-- Tabel Transaksi -->
+        <table class="table table-striped mt-3" id="transactionTable">
             <thead>
                 <tr>
-                    <th>Nama Produk</th>
-                    <th>Harga</th>
-                    <th>Jumlah</th>
-                    <th>Diskon</th>
+                    <th>No</th>
+                    <th>ID Transaction</th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
                     <th>Total</th>
-                    <th>Aksi</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Data keranjang akan dimuat di sini -->
+                <!-- Transaction Rows will be dynamically added here -->
             </tbody>
         </table>
-
-        <!-- Subtotal dan Pembayaran -->
-        <div class="mb-3">
-            <label for="subtotal" class="form-label">Subtotal</label>
-            <input type="text" class="form-control" id="subtotal" disabled>
-        </div>
-        <div class="mb-3">
-            <label for="paymentAmount" class="form-label">Jumlah Bayar</label>
-            <input type="number" class="form-control" id="paymentAmount" required>
-        </div>
-        <div class="mb-3">
-            <label for="change" class="form-label">Kembalian</label>
-            <input type="text" class="form-control" id="change" disabled>
-        </div>
-
-        <div class="mb-3">
-            <label for="paymentMethod" class="form-label">Metode Pembayaran</label>
-            <select class="form-control" id="paymentMethod">
-                <option value="cash">Cash</option>
-                <option value="non-cash">Non-Cash</option>
-            </select>
-        </div>
-
-        <button class="btn btn-success" id="confirmPaymentBtn">Konfirmasi Pembayaran</button>
     </div>
 
-    <script src="js/transaction.js"></script>
+    <!-- Modal Transaksi -->
+    <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="transactionModalLabel">Add Transaction</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="transactionForm">
+                        <div class="mb-3">
+                            <label for="product" class="form-label">Product</label>
+                            <input type="text" class="form-control" id="product" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="quantity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price per Unit</label>
+                            <input type="number" class="form-control" id="price" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-control" id="status" required>
+                                <option value="paid">Paid</option>
+                                <option value="unpaid">Unpaid</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="transaction.js"></script>
 </body>
 </html>

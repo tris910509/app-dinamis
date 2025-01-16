@@ -1,23 +1,15 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const transactionForm = document.getElementById("transactionForm");
-    const paymentForm = document.getElementById("paymentForm");
-    const transactionTable = document.getElementById("transactionTable").getElementsByTagName('tbody')[0];
-    let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-    let customers = JSON.parse(localStorage.getItem("customers")) || [];
-    let products = JSON.parse(localStorage.getItem("products")) || [];
-    let suppliers = JSON.parse(localStorage.getItem("suppliers")) || [];
+    const products = [
+        { id: "prod1", name: "Produk A", price: 100000 },
+        { id: "prod2", name: "Produk B", price: 150000 },
+        { id: "prod3", name: "Produk C", price: 200000 }
+    ];
 
-    // Load customers into the dropdown
-    const customerSelect = document.getElementById("customer");
-    customers.forEach(customer => {
-        const option = document.createElement("option");
-        option.value = customer.id;
-        option.textContent = customer.name;
-        customerSelect.appendChild(option);
-    });
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    let transactionHistory = JSON.parse(localStorage.getItem("transactionHistory")) || [];
 
-    // Load products into the dropdown
-    const productSelect = document.getElementById("product");
+    // Load produk ke dropdown
+    const productSelect = document.getElementById("productSelect");
     products.forEach(product => {
         const option = document.createElement("option");
         option.value = product.id;
@@ -25,126 +17,107 @@ document.addEventListener("DOMContentLoaded", function () {
         productSelect.appendChild(option);
     });
 
-    // Calculate total price (price * quantity - discount)
-    function calculateTotal(productId, quantity, discount) {
-        const product = products.find(p => p.id === productId);
-        if (product) {
-            const total = (product.price * quantity) - discount;
-            return total >= 0 ? total : 0;
-        }
-        return 0;
+    // Update keranjang
+    function updateCartTable() {
+        const cartTable = document.getElementById("cartTable").getElementsByTagName('tbody')[0];
+        cartTable.innerHTML = "";
+        let subtotal = 0;
+
+        cart.forEach((item, index) => {
+            const row = cartTable.insertRow();
+            row.innerHTML = `
+                <td>${item.name}</td>
+                <td>${item.price}</td>
+                <td>${item.quantity}</td>
+                <td>${item.discount}%</td>
+                <td>${item.total}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Hapus</button></td>
+            `;
+            subtotal += item.total;
+        });
+
+        document.getElementById("subtotal").value = subtotal;
+        updateChange();
     }
 
-    // Save transaction
-    transactionForm.addEventListener("submit", function (e) {
+    // Update perubahan kembalian
+    function updateChange() {
+        const paymentAmount = parseFloat(document.getElementById("paymentAmount").value) || 0;
+        const subtotal = parseFloat(document.getElementById("subtotal").value) || 0;
+        const change = paymentAmount - subtotal;
+        document.getElementById("change").value = change >= 0 ? change : 0;
+    }
+
+    // Tambah ke keranjang
+    document.getElementById("transactionForm").addEventListener("submit", function (e) {
         e.preventDefault();
 
-        const customerId = document.getElementById("customer").value;
-        const productId = document.getElementById("product").value;
+        const selectedProductId = document.getElementById("productSelect").value;
         const quantity = parseInt(document.getElementById("quantity").value);
-        const discount = parseFloat(document.getElementById("discount").value);
+        const discount = parseInt(document.getElementById("discount").value);
 
-        const customer = customers.find(c => c.id === customerId);
-        const product = products.find(p => p.id === productId);
-        const total = calculateTotal(productId, quantity, discount);
-        const status = "Unpaid";  // Default status is Unpaid
-        const transactionId = "txn-" + Date.now();
+        const product = products.find(p => p.id === selectedProductId);
+        const total = product.price * quantity * (1 - discount / 100);
 
-        transactions.push({
-            transactionId,
-            customer: customer.name,
-            product: product.name,
-            supplier: product.supplier,
-            quantity,
+        cart.push({
+            name: product.name,
             price: product.price,
-            discount,
-            total,
-            status,
-            payment: null,  // No payment initially
+            quantity: quantity,
+            discount: discount,
+            total: total
         });
 
-        localStorage.setItem("transactions", JSON.stringify(transactions));
-        renderTransactionTable();
-        Swal.fire("Success", "Transaction added successfully", "success");
-        transactionForm.reset();
-        bootstrap.Modal.getInstance(document.getElementById("transactionModal")).hide();
+        localStorage.setItem("cart", JSON.stringify(cart));
+        updateCartTable();
     });
 
-    // Render transaction table
-    function renderTransactionTable() {
-        transactionTable.innerHTML = "";
-        transactions.forEach((transaction, index) => {
-            const row = transactionTable.insertRow();
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${transaction.transactionId}</td>
-                <td>${transaction.customer}</td>
-                <td>${transaction.product}</td>
-                <td>${transaction.supplier}</td>
-                <td>${transaction.quantity}</td>
-                <td>${transaction.price}</td>
-                <td>${transaction.discount}</td>
-                <td>${transaction.total}</td>
-                <td>${transaction.status}</td>
-                <td>
-                    ${transaction.status === "Unpaid" ? `
-                    <button class="btn btn-info btn-sm" onclick="openPaymentModal(${index})">
-                        <i class="fas fa-credit-card"></i> Pay
-                    </button>` : 'Paid'}
-                </td>
-                <td>
-                    <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${index})">
-                        <i class="fas fa-trash-alt"></i> Delete
-                    </button>
-                </td>
-            `;
-        });
+    // Hapus dari keranjang
+    window.removeFromCart = function (index) {
+        cart.splice(index, 1);
+        localStorage.setItem("cart", JSON.stringify(cart));
+        updateCartTable();
+    };
+
+    // Konfirmasi Pembayaran
+    document.getElementById("confirmPaymentBtn").addEventListener("click", function () {
+        const paymentMethod = document.getElementById("paymentMethod").value;
+        const paymentAmount = parseFloat(document.getElementById("paymentAmount").value);
+        const subtotal = parseFloat(document.getElementById("subtotal").value);
+
+        if (paymentMethod === "cash" && paymentAmount >= subtotal) {
+            Swal.fire("Pembayaran Lunas", "Status Pembayaran: Lunas", "success");
+            saveTransaction("lunas");
+        } else if (paymentMethod === "non-cash") {
+            Swal.fire("Pembayaran Non-Cash", "Silakan lanjutkan ke konfirmasi pembayaran", "info");
+            saveTransaction("belum lunas");
+        } else {
+            Swal.fire("Pembayaran Gagal", "Jumlah pembayaran tidak cukup", "error");
+        }
+    });
+
+    // Simpan transaksi
+    function saveTransaction(status) {
+        const customerName = document.getElementById("customerName").value;
+        const transaction = {
+            customerName: customerName,
+            items: cart,
+            subtotal: parseFloat(document.getElementById("subtotal").value),
+            paymentStatus: status,
+            paymentMethod: document.getElementById("paymentMethod").value,
+            paymentAmount: parseFloat(document.getElementById("paymentAmount").value),
+            change: parseFloat(document.getElementById("change").value),
+            transactionId: "txn-" + Date.now()
+        };
+
+        transactionHistory.push(transaction);
+        localStorage.setItem("transactionHistory", JSON.stringify(transactionHistory));
+
+        // Clear cart
+        cart = [];
+        localStorage.setItem("cart", JSON.stringify(cart));
+        updateCartTable();
     }
 
-    // Open payment modal
-    window.openPaymentModal = function (index) {
-        const transaction = transactions[index];
-        document.getElementById("paymentAmount").value = transaction.total;
-        document.getElementById("paymentMethod").value = "cash";
-        bootstrap.Modal.getInstance(document.getElementById("paymentModal")).show();
-
-        // Handle payment submission
-        paymentForm.onsubmit = function (e) {
-            e.preventDefault();
-            const paymentMethod = document.getElementById("paymentMethod").value;
-            const paymentAmount = parseFloat(document.getElementById("paymentAmount").value);
-
-            if (paymentAmount >= transaction.total) {
-                transactions[index].status = "Paid";
-                transactions[index].payment = { method: paymentMethod, amount: paymentAmount, date: new Date().toLocaleString() };
-                localStorage.setItem("transactions", JSON.stringify(transactions));
-                renderTransactionTable();
-                Swal.fire("Paid", "Payment received successfully.", "success");
-                bootstrap.Modal.getInstance(document.getElementById("paymentModal")).hide();
-            } else {
-                Swal.fire("Error", "Insufficient payment amount.", "error");
-            }
-        };
-    };
-
-    // Delete transaction
-    window.deleteTransaction = function (index) {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This action cannot be undone.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                transactions.splice(index, 1);
-                localStorage.setItem("transactions", JSON.stringify(transactions));
-                renderTransactionTable();
-                Swal.fire("Deleted!", "Transaction has been deleted.", "success");
-            }
-        });
-    };
-
-    // Initial render of the table
-    renderTransactionTable();
+    // Update keranjang saat halaman dimuat
+    updateCartTable();
 });

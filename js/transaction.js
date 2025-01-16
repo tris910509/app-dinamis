@@ -1,151 +1,120 @@
-// Data penyimpanan sementara menggunakan localStorage
-const customers = JSON.parse(localStorage.getItem("customers")) || [];
-const products = JSON.parse(localStorage.getItem("products")) || [];
-const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+document.addEventListener("DOMContentLoaded", function () {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const customerSelect = document.getElementById("transactionCustomer");
+    const productSelect = document.getElementById("transactionProduct");
+    const quantityInput = document.getElementById("transactionQuantity");
+    const cartTable = document.getElementById("cartTable").getElementsByTagName('tbody')[0];
+    const totalPriceElement = document.getElementById("totalPrice");
+    const paymentModal = new bootstrap.Modal(document.getElementById("paymentModal"));
+    const paymentTotalElement = document.getElementById("paymentTotal");
 
-// Elemen DOM
-const transactionTableBody = document.querySelector("#transactionTable tbody");
-const addTransactionBtn = document.getElementById("addTransactionBtn");
-const customerForm = document.getElementById("customerForm");
-const productForm = document.getElementById("productForm");
-const customerFormElement = document.getElementById("customerFormElement");
-const productFormElement = document.getElementById("productFormElement");
+    // Sample Customers and Products (this should come from your data)
+    const customers = [
+        { id: "cus-1", name: "John Doe" },
+        { id: "cus-2", name: "Jane Smith" }
+    ];
 
-// Fungsi untuk menambah Customer
-function addCustomer(name, email, address) {
-    const newCustomer = {
-        id: Date.now().toString(),
-        name,
-        email,
-        address,
-        status: "aktif",
-    };
-    customers.push(newCustomer);
-    localStorage.setItem("customers", JSON.stringify(customers));
-    Swal.fire("Customer berhasil ditambahkan");
-}
+    const products = [
+        { id: "prod-1", name: "Product 1", price: 100 },
+        { id: "prod-2", name: "Product 2", price: 200 },
+        { id: "prod-3", name: "Product 3", price: 300 }
+    ];
 
-// Fungsi untuk menambah Produk
-function addProduct(name, price, stock) {
-    const newProduct = {
-        id: Date.now().toString(),
-        name,
-        price,
-        stock,
-    };
-    products.push(newProduct);
-    localStorage.setItem("products", JSON.stringify(products));
-    Swal.fire("Produk berhasil ditambahkan");
-}
-
-// Fungsi untuk menambah Transaksi
-function addTransaction(customerId, cart, paymentMethod) {
-    const customer = customers.find(c => c.id === customerId);
-    const transactionItems = cart.map(item => ({
-        productId: item.product.id,
-        productName: item.product.name,
-        quantity: item.quantity,
-        price: item.product.price,
-        total: item.total
-    }));
-
-    const totalAmount = cart.reduce((acc, item) => acc + item.total, 0);
-    const transaction = {
-        id: Date.now().toString(),
-        customerId: customer.id,
-        customerName: customer.name,
-        items: transactionItems,
-        totalAmount,
-        paymentMethod,
-        paymentStatus: paymentMethod === 'cash' ? 'Lunas' : 'Pending',
-        date: new Date().toISOString(),
-    };
-
-    transactions.push(transaction);
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-    Swal.fire("Transaksi berhasil ditambahkan");
-    updateTransactionTable();
-}
-
-// Update tabel transaksi
-function updateTransactionTable() {
-    transactionTableBody.innerHTML = "";
-    transactions.forEach(transaction => {
-        const customer = customers.find(c => c.id === transaction.customerId);
-        const row = `
-            <tr>
-                <td>${transaction.id}</td>
-                <td>${customer ? customer.name : "Umum"}</td>
-                <td>${transaction.items.map(item => item.productName).join(", ")}</td>
-                <td>Rp ${transaction.totalAmount.toLocaleString()}</td>
-                <td>${transaction.paymentMethod}</td>
-                <td>${transaction.paymentStatus}</td>
-                <td>${new Date(transaction.date).toLocaleString()}</td>
-                <td><button class="btn btn-info btn-sm" onclick="viewTransactionDetails('${transaction.id}')">Detail</button></td>
-            </tr>
-        `;
-        transactionTableBody.insertAdjacentHTML("beforeend", row);
+    // Populate Customer and Product Select Options
+    customers.forEach(customer => {
+        const option = document.createElement("option");
+        option.value = customer.id;
+        option.textContent = customer.name;
+        customerSelect.appendChild(option);
     });
-}
 
-// Menampilkan detail transaksi
-function viewTransactionDetails(transactionId) {
-    const transaction = transactions.find(t => t.id === transactionId);
-    if (transaction) {
-        Swal.fire({
-            title: "Detail Transaksi",
-            html: `
-                <p><strong>Customer:</strong> ${transaction.customerName}</p>
-                <p><strong>Produk:</strong> ${transaction.items.map(item => `${item.productName} (x${item.quantity})`).join(", ")}</p>
-                <p><strong>Total:</strong> Rp ${transaction.totalAmount.toLocaleString()}</p>
-                <p><strong>Status Pembayaran:</strong> ${transaction.paymentStatus}</p>
-            `
+    products.forEach(product => {
+        const option = document.createElement("option");
+        option.value = product.id;
+        option.textContent = product.name;
+        productSelect.appendChild(option);
+    });
+
+    // Update Cart Table
+    function updateCartTable() {
+        cartTable.innerHTML = "";
+        let total = 0;
+
+        cart.forEach(item => {
+            const row = cartTable.insertRow();
+            row.innerHTML = `
+                <td>${item.product.name}</td>
+                <td>${item.quantity}</td>
+                <td>$${item.product.price}</td>
+                <td>$${item.product.price * item.quantity}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="removeFromCart('${item.product.id}')">Remove</button></td>
+            `;
+            total += item.product.price * item.quantity;
         });
+
+        totalPriceElement.textContent = total;
     }
-}
 
-// Fungsi untuk menampilkan form Customer
-addTransactionBtn.addEventListener("click", () => {
-    const customerFormVisible = customerForm.style.display === "block";
-    customerForm.style.display = customerFormVisible ? "none" : "block";
-    productForm.style.display = "none";  // Hide product form
+    // Add Product to Cart
+    document.getElementById("addToCart").addEventListener("click", function () {
+        const selectedProductId = productSelect.value;
+        const quantity = parseInt(quantityInput.value);
+
+        const product = products.find(p => p.id === selectedProductId);
+        if (product && quantity > 0) {
+            const existingItem = cart.find(item => item.product.id === product.id);
+
+            if (existingItem) {
+                existingItem.quantity += quantity; // Update quantity if product already in cart
+            } else {
+                cart.push({ product, quantity });
+            }
+
+            localStorage.setItem("cart", JSON.stringify(cart));
+            updateCartTable();
+        } else {
+            Swal.fire("Invalid Product or Quantity", "Please select a valid product and quantity.", "error");
+        }
+    });
+
+    // Remove Product from Cart
+    window.removeFromCart = function (productId) {
+        const index = cart.findIndex(item => item.product.id === productId);
+        if (index !== -1) {
+            cart.splice(index, 1);
+            localStorage.setItem("cart", JSON.stringify(cart));
+            updateCartTable();
+        }
+    };
+
+    // Proceed to Payment
+    document.getElementById("processPayment").addEventListener("click", function () {
+        if (cart.length > 0) {
+            const total = parseInt(totalPriceElement.textContent);
+            paymentTotalElement.textContent = "$" + total;
+            paymentModal.show();
+        } else {
+            Swal.fire("Cart is Empty", "Please add some products to the cart before proceeding.", "warning");
+        }
+    });
+
+    // Confirm Payment
+    document.getElementById("confirmPayment").addEventListener("click", function () {
+        const paymentStatus = document.getElementById("paymentStatus").value;
+
+        Swal.fire({
+            title: "Transaction Confirmed",
+            text: `Payment Status: ${paymentStatus}`,
+            icon: "success",
+            confirmButtonText: "OK",
+        }).then(() => {
+            // Clear the cart and update localStorage
+            localStorage.removeItem("cart");
+            updateCartTable();
+            paymentModal.hide();
+        });
+    });
+
+    // Initial Cart Table Update
+    updateCartTable();
 });
-
-// Handle tambah customer form
-customerFormElement.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = document.getElementById("customerName").value;
-    const email = document.getElementById("customerEmail").value;
-    const address = document.getElementById("customerAddress").value;
-    addCustomer(name, email, address);
-    customerForm.style.display = "none";
-});
-
-// Handle cancel customer form
-document.getElementById("cancelCustomerForm").addEventListener("click", () => {
-    customerForm.style.display = "none";
-});
-
-// Handle tambah produk form
-document.getElementById("addProductBtn").addEventListener("click", () => {
-    productForm.style.display = "block";
-    customerForm.style.display = "none";
-});
-
-// Handle tambah produk form submission
-productFormElement.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = document.getElementById("productName").value;
-    const price = document.getElementById("productPrice").value;
-    const stock = document.getElementById("productStock").value;
-    addProduct(name, price, stock);
-    productForm.style.display = "none";
-});
-
-// Handle cancel produk form
-document.getElementById("cancelProductForm").addEventListener("click", () => {
-    productForm.style.display = "none";
-});
-
-// Inisialisasi
-updateTransactionTable();

@@ -10,76 +10,71 @@
 <body>
     <div class="container mt-5">
         <h1>Transaction Management</h1>
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#transactionModal">
+            <i class="fas fa-plus"></i> Add Transaction
+        </button>
 
-        <!-- Form Transaction -->
-        <div class="mb-3">
-            <label for="transactionCustomer" class="form-label">Customer</label>
-            <select class="form-control" id="transactionCustomer">
-                <!-- Populate customer list here -->
-            </select>
-        </div>
-        
-        <div class="mb-3">
-            <label for="transactionProduct" class="form-label">Product</label>
-            <select class="form-control" id="transactionProduct">
-                <!-- Populate product list here -->
-            </select>
-        </div>
-        
-        <div class="mb-3">
-            <label for="transactionQuantity" class="form-label">Quantity</label>
-            <input type="number" class="form-control" id="transactionQuantity" min="1" value="1">
-        </div>
-
-        <button class="btn btn-success mb-3" id="addToCart">Add to Cart</button>
-
-        <h3>Shopping Cart</h3>
-        <table class="table table-bordered" id="cartTable">
+        <!-- Tabel Transaksi -->
+        <table class="table table-striped mt-3" id="transactionTable">
             <thead>
                 <tr>
-                    <th>Product</th>
+                    <th>No</th>
+                    <th>Transaction ID</th>
+                    <th>Customer Name</th>
+                    <th>Product Name</th>
+                    <th>Supplier</th>
                     <th>Quantity</th>
                     <th>Price</th>
+                    <th>Discount</th>
                     <th>Total</th>
-                    <th>Action</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Cart items will be dynamically added here -->
+                <!-- Transaction Rows will be dynamically added here -->
             </tbody>
         </table>
+    </div>
 
-        <h4>Total: <span id="totalPrice">0</span></h4>
-
-        <button class="btn btn-primary" id="processPayment">Proceed to Payment</button>
-        
-        <!-- Modal Payment -->
-        <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="paymentModalLabel">Payment Confirmation</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Total: <span id="paymentTotal"></span></p>
-                        <label for="paymentStatus">Payment Status</label>
-                        <select class="form-control" id="paymentStatus">
-                            <option value="Paid">Paid</option>
-                            <option value="Unpaid">Unpaid</option>
-                        </select>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="confirmPayment">Confirm Payment</button>
-                    </div>
+    <!-- Modal Transaksi -->
+    <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="transactionModalLabel">Add Transaction</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="transactionForm">
+                        <div class="mb-3">
+                            <label for="customer" class="form-label">Customer</label>
+                            <select class="form-control" id="customer" required>
+                                <!-- Customers will be loaded here -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="product" class="form-label">Product</label>
+                            <select class="form-control" id="product" required>
+                                <!-- Products will be loaded here -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="quantity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="discount" class="form-label">Discount</label>
+                            <input type="number" class="form-control" id="discount" required value="0">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </form>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/transaction.js"></script>
+    <script src="transaction.js"></script>
 </body>
 </html>

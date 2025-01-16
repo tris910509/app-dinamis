@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const customer = customers.find(c => c.id === customerId);
         const product = products.find(p => p.id === productId);
         const total = calculateTotal(productId, quantity, discount);
-        const status = total > 0 ? "Paid" : "Unpaid";
+        const status = total > 0 ? "Unpaid" : "Paid";  // Default status is Unpaid
         const transactionId = "txn-" + Date.now();
 
         transactions.push({
@@ -85,6 +85,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${transaction.total}</td>
                 <td>${transaction.status}</td>
                 <td>
+                    <button class="btn btn-success btn-sm" onclick="confirmPayment(${index})">
+                        <i class="fas fa-check"></i> Confirm Payment
+                    </button>
                     <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${index})">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
@@ -92,6 +95,25 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
         });
     }
+
+    // Confirm payment for a transaction
+    window.confirmPayment = function (index) {
+        Swal.fire({
+            title: "Confirm Payment",
+            text: "Are you sure you want to mark this transaction as Paid?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, mark as Paid!",
+            cancelButtonText: "No, keep as Unpaid"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                transactions[index].status = "Paid";
+                localStorage.setItem("transactions", JSON.stringify(transactions));
+                renderTransactionTable();
+                Swal.fire("Paid", "Transaction has been marked as Paid.", "success");
+            }
+        });
+    };
 
     // Delete transaction
     window.deleteTransaction = function (index) {
@@ -111,6 +133,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     };
 
-    // Load transactions on page load
+    // Initial render of the table
     renderTransactionTable();
 });

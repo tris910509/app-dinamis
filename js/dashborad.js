@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("searchInput");
+    const filterBtn = document.getElementById("filterBtn");
+    const transactionTable = document.getElementById("transactionTable").getElementsByTagName('tbody')[0];
+
     // Load data from localStorage
     const users = JSON.parse(localStorage.getItem("users")) || [];
     const customers = JSON.parse(localStorage.getItem("customers")) || [];
@@ -33,27 +37,15 @@ document.addEventListener("DOMContentLoaded", function () {
         type: "line",
         data: {
             labels: [
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December",
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
             ],
-            datasets: [
-                {
-                    label: "Monthly Revenue",
-                    data: monthlyRevenue,
-                    borderColor: "rgba(75, 192, 192, 1)",
-                    backgroundColor: "rgba(75, 192, 192, 0.2)",
-                },
-            ],
+            datasets: [{
+                label: "Monthly Revenue",
+                data: monthlyRevenue,
+                borderColor: "rgba(75, 192, 192, 1)",
+                backgroundColor: "rgba(75, 192, 192, 0.2)",
+            }],
         },
     });
 
@@ -65,15 +57,41 @@ document.addEventListener("DOMContentLoaded", function () {
         type: "bar",
         data: {
             labels: productNames,
-            datasets: [
-                {
-                    label: "Top Products",
-                    data: productQuantities,
-                    backgroundColor: "rgba(153, 102, 255, 0.6)",
-                    borderColor: "rgba(153, 102, 255, 1)",
-                    borderWidth: 1,
-                },
-            ],
+            datasets: [{
+                label: "Top Products",
+                data: productQuantities,
+                backgroundColor: "rgba(153, 102, 255, 0.6)",
+                borderColor: "rgba(153, 102, 255, 1)",
+                borderWidth: 1,
+            }],
         },
     });
+
+    // Filter Functionality
+    filterBtn.addEventListener("click", function () {
+        const searchText = searchInput.value.toLowerCase();
+        const filteredTransactions = transactions.filter(transaction => 
+            transaction.product.toLowerCase().includes(searchText) || 
+            transaction.customerName.toLowerCase().includes(searchText)
+        );
+        displayTransactions(filteredTransactions);
+    });
+
+    // Display transactions
+    function displayTransactions(transactions) {
+        transactionTable.innerHTML = "";
+        transactions.forEach(transaction => {
+            const row = transactionTable.insertRow();
+            row.innerHTML = `
+                <td>${transaction.id}</td>
+                <td>${transaction.product}</td>
+                <td>${transaction.customerName}</td>
+                <td>${transaction.total}</td>
+                <td>${transaction.date}</td>
+                <td>${transaction.status}</td>
+            `;
+        });
+    }
+
+    displayTransactions(transactions);
 });

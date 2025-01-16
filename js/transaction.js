@@ -1,26 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    const customerSelect = document.getElementById("transactionCustomer");
-    const productSelect = document.getElementById("transactionProduct");
-    const quantityInput = document.getElementById("transactionQuantity");
-    const cartTable = document.getElementById("cartTable").getElementsByTagName('tbody')[0];
-    const totalPriceElement = document.getElementById("totalPrice");
-    const paymentModal = new bootstrap.Modal(document.getElementById("paymentModal"));
-    const paymentTotalElement = document.getElementById("paymentTotal");
+    const transactionForm = document.getElementById("transactionForm");
+    const transactionTable = document.getElementById("transactionTable").getElementsByTagName('tbody')[0];
+    let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+    let customers = JSON.parse(localStorage.getItem("customers")) || [];
+    let products = JSON.parse(localStorage.getItem("products")) || [];
+    let suppliers = JSON.parse(localStorage.getItem("suppliers")) || [];
 
-    // Sample Customers and Products (this should come from your data)
-    const customers = [
-        { id: "cus-1", name: "John Doe" },
-        { id: "cus-2", name: "Jane Smith" }
-    ];
-
-    const products = [
-        { id: "prod-1", name: "Product 1", price: 100 },
-        { id: "prod-2", name: "Product 2", price: 200 },
-        { id: "prod-3", name: "Product 3", price: 300 }
-    ];
-
-    // Populate Customer and Product Select Options
+    // Load customers into the dropdown
+    const customerSelect = document.getElementById("customer");
     customers.forEach(customer => {
         const option = document.createElement("option");
         option.value = customer.id;
@@ -28,6 +15,8 @@ document.addEventListener("DOMContentLoaded", function () {
         customerSelect.appendChild(option);
     });
 
+    // Load products into the dropdown
+    const productSelect = document.getElementById("product");
     products.forEach(product => {
         const option = document.createElement("option");
         option.value = product.id;
@@ -35,86 +24,93 @@ document.addEventListener("DOMContentLoaded", function () {
         productSelect.appendChild(option);
     });
 
-    // Update Cart Table
-    function updateCartTable() {
-        cartTable.innerHTML = "";
-        let total = 0;
-
-        cart.forEach(item => {
-            const row = cartTable.insertRow();
-            row.innerHTML = `
-                <td>${item.product.name}</td>
-                <td>${item.quantity}</td>
-                <td>$${item.product.price}</td>
-                <td>$${item.product.price * item.quantity}</td>
-                <td><button class="btn btn-danger btn-sm" onclick="removeFromCart('${item.product.id}')">Remove</button></td>
-            `;
-            total += item.product.price * item.quantity;
-        });
-
-        totalPriceElement.textContent = total;
+    // Calculate total price (price * quantity - discount)
+    function calculateTotal(productId, quantity, discount) {
+        const product = products.find(p => p.id === productId);
+        if (product) {
+            const total = (product.price * quantity) - discount;
+            return total >= 0 ? total : 0;
+        }
+        return 0;
     }
 
-    // Add Product to Cart
-    document.getElementById("addToCart").addEventListener("click", function () {
-        const selectedProductId = productSelect.value;
-        const quantity = parseInt(quantityInput.value);
+    // Save transaction
+    transactionForm.addEventListener("submit", function (e) {
+        e.preventDefault();
 
-        const product = products.find(p => p.id === selectedProductId);
-        if (product && quantity > 0) {
-            const existingItem = cart.find(item => item.product.id === product.id);
+        const customerId = document.getElementById("customer").value;
+        const productId = document.getElementById("product").value;
+        const quantity = parseInt(document.getElementById("quantity").value);
+        const discount = parseFloat(document.getElementById("discount").value);
 
-            if (existingItem) {
-                existingItem.quantity += quantity; // Update quantity if product already in cart
-            } else {
-                cart.push({ product, quantity });
-            }
+        const customer = customers.find(c => c.id === customerId);
+        const product = products.find(p => p.id === productId);
+        const total = calculateTotal(productId, quantity, discount);
+        const status = total > 0 ? "Paid" : "Unpaid";
+        const transactionId = "txn-" + Date.now();
 
-            localStorage.setItem("cart", JSON.stringify(cart));
-            updateCartTable();
-        } else {
-            Swal.fire("Invalid Product or Quantity", "Please select a valid product and quantity.", "error");
-        }
+        transactions.push({
+            transactionId,
+            customer: customer.name,
+            product: product.name,
+            supplier: product.supplier,
+            quantity,
+            price: product.price,
+            discount,
+            total,
+            status,
+        });
+
+        localStorage.setItem("transactions", JSON.stringify(transactions));
+        renderTransactionTable();
+        Swal.fire("Success", "Transaction added successfully", "success");
+        transactionForm.reset();
+        bootstrap.Modal.getInstance(document.getElementById("transactionModal")).hide();
     });
 
-    // Remove Product from Cart
-    window.removeFromCart = function (productId) {
-        const index = cart.findIndex(item => item.product.id === productId);
-        if (index !== -1) {
-            cart.splice(index, 1);
-            localStorage.setItem("cart", JSON.stringify(cart));
-            updateCartTable();
-        }
+    // Render transaction table
+    function renderTransactionTable() {
+        transactionTable.innerHTML = "";
+        transactions.forEach((transaction, index) => {
+            const row = transactionTable.insertRow();
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${transaction.transactionId}</td>
+                <td>${transaction.customer}</td>
+                <td>${transaction.product}</td>
+                <td>${transaction.supplier}</td>
+                <td>${transaction.quantity}</td>
+                <td>${transaction.price}</td>
+                <td>${transaction.discount}</td>
+                <td>${transaction.total}</td>
+                <td>${transaction.status}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${index})">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </td>
+            `;
+        });
+    }
+
+    // Delete transaction
+    window.deleteTransaction = function (index) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This action cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                transactions.splice(index, 1);
+                localStorage.setItem("transactions", JSON.stringify(transactions));
+                renderTransactionTable();
+                Swal.fire("Deleted!", "Transaction has been deleted.", "success");
+            }
+        });
     };
 
-    // Proceed to Payment
-    document.getElementById("processPayment").addEventListener("click", function () {
-        if (cart.length > 0) {
-            const total = parseInt(totalPriceElement.textContent);
-            paymentTotalElement.textContent = "$" + total;
-            paymentModal.show();
-        } else {
-            Swal.fire("Cart is Empty", "Please add some products to the cart before proceeding.", "warning");
-        }
-    });
-
-    // Confirm Payment
-    document.getElementById("confirmPayment").addEventListener("click", function () {
-        const paymentStatus = document.getElementById("paymentStatus").value;
-
-        Swal.fire({
-            title: "Transaction Confirmed",
-            text: `Payment Status: ${paymentStatus}`,
-            icon: "success",
-            confirmButtonText: "OK",
-        }).then(() => {
-            // Clear the cart and update localStorage
-            localStorage.removeItem("cart");
-            updateCartTable();
-            paymentModal.hide();
-        });
-    });
-
-    // Initial Cart Table Update
-    updateCartTable();
+    // Load transactions on page load
+    renderTransactionTable();
 });

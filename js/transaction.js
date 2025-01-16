@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const transactionForm = document.getElementById("transactionForm");
+    const paymentForm = document.getElementById("paymentForm");
     const transactionTable = document.getElementById("transactionTable").getElementsByTagName('tbody')[0];
     let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
     let customers = JSON.parse(localStorage.getItem("customers")) || [];
@@ -46,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const customer = customers.find(c => c.id === customerId);
         const product = products.find(p => p.id === productId);
         const total = calculateTotal(productId, quantity, discount);
-        const status = total > 0 ? "Unpaid" : "Paid";  // Default status is Unpaid
+        const status = "Unpaid";  // Default status is Unpaid
         const transactionId = "txn-" + Date.now();
 
         transactions.push({
@@ -59,6 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
             discount,
             total,
             status,
+            payment: null,  // No payment initially
         });
 
         localStorage.setItem("transactions", JSON.stringify(transactions));
@@ -85,9 +87,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${transaction.total}</td>
                 <td>${transaction.status}</td>
                 <td>
-                    <button class="btn btn-success btn-sm" onclick="confirmPayment(${index})">
-                        <i class="fas fa-check"></i> Confirm Payment
-                    </button>
+                    ${transaction.status === "Unpaid" ? `
+                    <button class="btn btn-info btn-sm" onclick="openPaymentModal(${index})">
+                        <i class="fas fa-credit-card"></i> Pay
+                    </button>` : 'Paid'}
+                </td>
+                <td>
                     <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${index})">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
@@ -96,23 +101,30 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Confirm payment for a transaction
-    window.confirmPayment = function (index) {
-        Swal.fire({
-            title: "Confirm Payment",
-            text: "Are you sure you want to mark this transaction as Paid?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, mark as Paid!",
-            cancelButtonText: "No, keep as Unpaid"
-        }).then((result) => {
-            if (result.isConfirmed) {
+    // Open payment modal
+    window.openPaymentModal = function (index) {
+        const transaction = transactions[index];
+        document.getElementById("paymentAmount").value = transaction.total;
+        document.getElementById("paymentMethod").value = "cash";
+        bootstrap.Modal.getInstance(document.getElementById("paymentModal")).show();
+
+        // Handle payment submission
+        paymentForm.onsubmit = function (e) {
+            e.preventDefault();
+            const paymentMethod = document.getElementById("paymentMethod").value;
+            const paymentAmount = parseFloat(document.getElementById("paymentAmount").value);
+
+            if (paymentAmount >= transaction.total) {
                 transactions[index].status = "Paid";
+                transactions[index].payment = { method: paymentMethod, amount: paymentAmount, date: new Date().toLocaleString() };
                 localStorage.setItem("transactions", JSON.stringify(transactions));
                 renderTransactionTable();
-                Swal.fire("Paid", "Transaction has been marked as Paid.", "success");
+                Swal.fire("Paid", "Payment received successfully.", "success");
+                bootstrap.Modal.getInstance(document.getElementById("paymentModal")).hide();
+            } else {
+                Swal.fire("Error", "Insufficient payment amount.", "error");
             }
-        });
+        };
     };
 
     // Delete transaction

@@ -12,21 +12,32 @@
     <div class="container mt-5">
         <h1>POS Transactions</h1>
 
-        <!-- Pilih Customer -->
+        <!-- Form Customer -->
         <div class="mb-4">
             <h3>Customer Information</h3>
-            <div class="mb-3">
-                <label for="customerSelect" class="form-label">Select Customer</label>
-                <select id="customerSelect" class="form-select">
-                    <!-- Customers will be dynamically loaded -->
-                </select>
-            </div>
-            <p><strong>Selected Role:</strong> <span id="customerRole">-</span></p>
+            <form id="customerForm">
+                <div class="mb-3">
+                    <label for="customerName" class="form-label">Customer Name</label>
+                    <input type="text" id="customerName" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="customerRole" class="form-label">Customer Role</label>
+                    <select id="customerRole" class="form-select">
+                        <option value="Umum">Umum</option>
+                        <option value="PelSem">PelSem</option>
+                        <option value="PelMem">PelMem</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Customer</button>
+            </form>
         </div>
 
         <!-- Produk Section -->
         <div class="mb-4">
-            <h3>Available Products</h3>
+            <h3>Manage Products</h3>
+            <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#productModal">
+                <i class="fas fa-plus"></i> Add Product
+            </button>
             <table class="table table-striped" id="productTable">
                 <thead>
                     <tr>
@@ -44,43 +55,93 @@
         </div>
 
         <!-- Keranjang Belanja Section -->
-<div>
-    <h3>Shopping Cart</h3>
-    <table class="table table-striped" id="cartTable">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Product</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Subtotal</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Cart rows will be dynamically added here -->
-        </tbody>
-    </table>
-    <div class="d-flex justify-content-between align-items-center">
-        <h4>Total: $<span id="totalAmount">0</span></h4>
-        <button class="btn btn-success" id="checkoutButton">Checkout</button>
+        <div>
+            <h3>Shopping Cart</h3>
+            <table class="table table-striped" id="cartTable">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Cart rows will be dynamically added here -->
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <label for="customerType" class="form-label">Customer Type</label>
+                    <select id="customerType" class="form-select">
+                        <option value="0">Umum (No Discount)</option>
+                        <option value="5">Member (5% Discount)</option>
+                        <option value="10">Premium Member (10% Discount)</option>
+                    </select>
+                </div>
+                <h4>Total: $<span id="totalAmount">0</span></h4>
+            </div>
+        </div>
+
+        <!-- Metode Pembayaran -->
+        <div class="mb-4">
+            <h3>Payment Method</h3>
+            <select id="paymentMethod" class="form-select">
+                <option value="Cash">Cash</option>
+                <option value="Credit">Credit</option>
+            </select>
+            <button class="btn btn-success mt-3" id="checkoutButton">Checkout</button>
+        </div>
+
+        <!-- Daftar Pembayaran -->
+        <div>
+            <h3>Payment History</h3>
+            <table class="table table-striped" id="paymentHistoryTable">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Customer Name</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Payment history rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Pembayaran Section -->
-    <div id="paymentSection" class="mt-4" style="display: none;">
-        <h4>Payment</h4>
-        <div class="mb-3">
-            <label for="paymentAmount" class="form-label">Enter Payment Amount</label>
-            <input type="number" id="paymentAmount" class="form-control" placeholder="Amount Paid" min="0" step="0.01">
+    <!-- Modal Produk -->
+    <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productModalLabel">Add Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <div class="mb-3">
+                            <label for="productName" class="form-label">Product Name</label>
+                            <input type="text" id="productName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productPrice" class="form-label">Price</label>
+                            <input type="number" id="productPrice" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productStock" class="form-label">Stock</label>
+                            <input type="number" id="productStock" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Product</button>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <button class="btn btn-primary" id="confirmPaymentButton">Confirm Payment</button>
-        </div>
-    </div>
-</div>
-
-
-        
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

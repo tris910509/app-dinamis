@@ -1,65 +1,28 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const productForm = document.getElementById("productForm");
-    const productTable = document.getElementById("productTable").getElementsByTagName('tbody')[0];
-    const productCategory = document.getElementById("productCategory");
-    const productPhoto = document.getElementById("productPhoto");
-    let categories = JSON.parse(localStorage.getItem("categories")) || [];
-    let products = JSON.parse(localStorage.getItem("products")) || [];
+    const addCustomerBtn = document.getElementById("addCustomerBtn");
+    const customerModal = new bootstrap.Modal(document.getElementById("customerModal"));
+    const customerForm = document.getElementById("customerForm");
+    const customerTable = document.getElementById("customerTable").getElementsByTagName('tbody')[0];
+    let customers = JSON.parse(localStorage.getItem("customers")) || [];
 
-    // Populate categories dropdown
-    categories.forEach(category => {
-        const option = document.createElement("option");
-        option.value = category.id;
-        option.textContent = category.name;
-        productCategory.appendChild(option);
-    });
-
-    // Save product
-    productForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        const id = "product-" + Date.now(); // Generate unique ID
-        const name = document.getElementById("productName").value;
-        const category = document.getElementById("productCategory").value;
-        const price = document.getElementById("productPrice").value;
-        const stock = document.getElementById("productStock").value;
-        const status = document.getElementById("productStatus").value;
-
-        // Get the selected file for photo
-        const photoFile = productPhoto.files[0];
-        const photoURL = photoFile ? URL.createObjectURL(photoFile) : "";
-
-        products.push({ id, name, category, price, stock, status, photoURL });
-        localStorage.setItem("products", JSON.stringify(products));
-        renderProductTable();
-        productForm.reset();
-        Swal.fire("Success", "Product added successfully", "success");
-        bootstrap.Modal.getInstance(document.getElementById("productModal")).hide();
-    });
-
-    // Render products table
-    function renderProductTable() {
-        productTable.innerHTML = "";
-        products.forEach((product, index) => {
-            const categoryName = categories.find(cat => cat.id === product.category)?.name || "Unknown";
-            const statusText = product.status === "active" ? "Active" : "Inactive";
-            const statusClass = product.status === "active" ? "badge bg-success" : "badge bg-danger";
-
-            const row = productTable.insertRow();
+    // Function to render the customer table
+    function renderCustomerTable() {
+        customerTable.innerHTML = "";
+        customers.forEach((customer, index) => {
+            const row = customerTable.insertRow();
             row.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${product.id}</td>
-                <td>${product.name}</td>
-                <td>${categoryName}</td>
-                <td>${product.price}</td>
-                <td>${product.stock}</td>
-                <td><span class="${statusClass}">${statusText}</span></td>
-                <td><img src="${product.photoURL}" alt="Product Photo" width="50"></td>
+                <td>${customer.id}</td>
+                <td>${customer.name}</td>
+                <td>${customer.email}</td>
+                <td>${customer.password}</td>
+                <td>${customer.status}</td>
+                <td><img src="${customer.photo}" alt="photo" width="50" height="50"></td>
                 <td>
-                    <button class="btn btn-warning btn-sm" onclick="editProduct(${index})">
+                    <button class="btn btn-warning btn-sm" onclick="editCustomer(${index})">
                         <i class="fas fa-edit"></i> Edit
                     </button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteProduct(${index})">
+                    <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${index})">
                         <i class="fas fa-trash-alt"></i> Delete
                     </button>
                 </td>
@@ -67,58 +30,89 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Edit product
-    window.editProduct = function (index) {
-        const product = products[index];
-        const category = categories.find(cat => cat.id === product.category);
-        const modal = new bootstrap.Modal(document.getElementById("productModal"));
-        document.getElementById("productName").value = product.name;
-        document.getElementById("productPrice").value = product.price;
-        document.getElementById("productStock").value = product.stock;
-        document.getElementById("productStatus").value = product.status;
-        productCategory.value = category ? category.id : "";
+    // Add Customer Button Click Event
+    addCustomerBtn.addEventListener("click", () => {
+        customerModal.show();
+    });
 
-        // Modify the form for editing
-        productForm.removeEventListener("submit", saveProduct);
-        productForm.addEventListener("submit", function (e) {
-            e.preventDefault();
+    // Submit Form Event
+    customerForm.addEventListener("submit", function (e) {
+        e.preventDefault();
 
-            product.name = document.getElementById("productName").value;
-            product.price = document.getElementById("productPrice").value;
-            product.stock = document.getElementById("productStock").value;
-            product.status = document.getElementById("productStatus").value;
+        const customerName = document.getElementById("customerName").value;
+        const customerEmail = document.getElementById("customerEmail").value;
+        const customerPassword = document.getElementById("customerPassword").value;
+        const customerStatus = document.getElementById("customerStatus").value;
+        const customerPhoto = document.getElementById("customerPhoto").files[0];
 
-            const newPhotoFile = productPhoto.files[0];
-            if (newPhotoFile) {
-                product.photoURL = URL.createObjectURL(newPhotoFile);
-            }
+        if (!customerName || !customerEmail || !customerPassword || !customerStatus) {
+            Swal.fire("Error", "All fields are required", "error");
+            return;
+        }
 
-            localStorage.setItem("products", JSON.stringify(products));
-            renderProductTable();
-            modal.hide();
-            Swal.fire("Success", "Product updated successfully", "success");
+        // Generate unique ID for the customer
+        const customerId = `customer-${Date.now()}`;
+
+        // Upload photo to base64 (for simplicity)
+        let photoUrl = '';
+        if (customerPhoto) {
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                photoUrl = reader.result;
+                saveCustomer(customerId, customerName, customerEmail, customerPassword, customerStatus, photoUrl);
+            };
+            reader.readAsDataURL(customerPhoto);
+        } else {
+            saveCustomer(customerId, customerName, customerEmail, customerPassword, customerStatus, '');
+        }
+    });
+
+    // Function to save customer data
+    function saveCustomer(id, name, email, password, status, photo) {
+        customers.push({
+            id: id,
+            name: name,
+            email: email,
+            password: password, // Store plain text password for now
+            status: status,
+            photo: photo
         });
-        modal.show();
+        localStorage.setItem("customers", JSON.stringify(customers));
+        customerForm.reset();
+        customerModal.hide();
+        renderCustomerTable();
+        Swal.fire("Success", "Customer added successfully", "success");
+    }
+
+    // Edit Customer
+    window.editCustomer = function (index) {
+        const customer = customers[index];
+        document.getElementById("customerName").value = customer.name;
+        document.getElementById("customerEmail").value = customer.email;
+        document.getElementById("customerPassword").value = customer.password;
+        document.getElementById("customerStatus").value = customer.status;
+        customerModal.show();
     };
 
-    // Delete product
-    window.deleteProduct = function (index) {
+    // Delete Customer
+    window.deleteCustomer = function (index) {
         Swal.fire({
             title: "Are you sure?",
-            text: "This action cannot be undone.",
+            text: "You will not be able to recover this customer!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "No, cancel!"
         }).then((result) => {
             if (result.isConfirmed) {
-                products.splice(index, 1);
-                localStorage.setItem("products", JSON.stringify(products));
-                renderProductTable();
-                Swal.fire("Deleted!", "Product has been deleted.", "success");
+                customers.splice(index, 1);
+                localStorage.setItem("customers", JSON.stringify(customers));
+                renderCustomerTable();
+                Swal.fire("Deleted!", "The customer has been deleted.", "success");
             }
         });
     };
 
-    // Load products on page load
-    renderProductTable();
+    // Initial Table Render
+    renderCustomerTable();
 });

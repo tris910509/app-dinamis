@@ -15,13 +15,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Save customer data
-    customerForm.addEventListener("submit", function (e) {
+    customerForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
         const id = "customer-" + Date.now(); // Generate unique ID
         const name = document.getElementById("customerName").value;
         const email = document.getElementById("customerEmail").value;
         const password = document.getElementById("customerPassword").value;
+        const hashedPassword = CryptoJS.SHA256(password).toString(); // Hash password
         const role = customerRole.value;
         const discount = customerDiscount.value;
         const status = document.getElementById("customerStatus").value;
@@ -32,11 +33,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const reader = new FileReader();
             reader.onload = function (event) {
                 photo = event.target.result;
-                saveCustomer(id, name, email, password, role, discount, status, photo);
+                saveCustomer(id, name, email, hashedPassword, role, discount, status, photo);
             };
             reader.readAsDataURL(photoInput.files[0]);
         } else {
-            saveCustomer(id, name, email, password, role, discount, status, photo);
+            saveCustomer(id, name, email, hashedPassword, role, discount, status, photo);
         }
     });
 
@@ -64,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${customer.role}</td>
                 <td>${customer.discount}</td>
                 <td>${customer.status}</td>
-                <td><img src="${customer.photo}" alt="Photo" width="50" height="50"></td>
+                <td>${customer.photo ? `<img src="${customer.photo}" alt="Photo" width="50" height="50">` : "No Photo"}</td>
                 <td>
                     <button class="btn btn-warning btn-sm" onclick="editCustomer(${index})">
                         <i class="fas fa-edit"></i> Edit

@@ -12,18 +12,98 @@ document.addEventListener("DOMContentLoaded", function () {
     let paymentHistory = JSON.parse(localStorage.getItem("paymentHistory")) || [];
 
     // Save Customer
+   // customerForm.addEventListener("submit", function (e) {
+     //   e.preventDefault();
+   //  const customerName = document.getElementById("customerName").value;
+       // const customerRole = document.getElementById("customerRole").value;
+//  const id = "cust-" + Date.now();
+
+     //   const newCustomer = { id, name: customerName, role: customerRole };
+    // customers.push(newCustomer);
+      //  localStorage.setItem("customers", JSON.stringify(customers));
+
+     //   Swal.fire("Success", "Customer added successfully", "success");
+   // });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const customerRoleSelect = document.getElementById("customerRole");
+    const customerDetails = document.getElementById("customerDetails");
+    const customerNameSection = document.getElementById("customerNameSection");
+    const customerIdSection = document.getElementById("customerIdSection");
+    const umumInputs = document.getElementById("umumInputs");
+    const customerNameInput = document.getElementById("customerName");
+    const customerIdInput = document.getElementById("customerId");
+
+    const customerForm = document.getElementById("customerForm");
+    let customers = JSON.parse(localStorage.getItem("customers")) || [];
+
+    // When the customer role changes
+    customerRoleSelect.addEventListener("change", function () {
+        const selectedRole = customerRoleSelect.value;
+        customerDetails.classList.add("d-none");
+        umumInputs.classList.add("d-none");
+
+        // Show relevant form based on role
+        if (selectedRole === "PelSem" || selectedRole === "PelMem") {
+            // Generate Customer ID and Name based on role
+            const customer = generateCustomerIdAndName(selectedRole);
+            customerIdInput.value = customer.id;
+            customerNameInput.value = customer.name;
+            customerDetails.classList.remove("d-none");
+        } else if (selectedRole === "Umum") {
+            umumInputs.classList.remove("d-none");
+        }
+    });
+
+    // Function to generate Customer ID and Name based on role
+    function generateCustomerIdAndName(role) {
+        const id = role.toLowerCase() + "-" + Date.now();
+        let name = "";
+
+        switch (role) {
+            case "PelSem":
+                name = "PelSem Customer";
+                break;
+            case "PelMem":
+                name = "PelMem Customer";
+                break;
+            default:
+                name = "";
+                break;
+        }
+
+        return { id, name };
+    }
+
+    // Save Customer Data
     customerForm.addEventListener("submit", function (e) {
         e.preventDefault();
-        const customerName = document.getElementById("customerName").value;
-        const customerRole = document.getElementById("customerRole").value;
-        const id = "cust-" + Date.now();
+        const role = customerRoleSelect.value;
 
-        const newCustomer = { id, name: customerName, role: customerRole };
+        // Create new customer based on role
+        let newCustomer = { id: "", name: "", role: role };
+
+        if (role === "Umum") {
+            newCustomer.name = document.getElementById("customerName").value;
+            newCustomer.contact = document.getElementById("customerContact").value;
+            newCustomer.email = document.getElementById("customerEmail").value;
+            newCustomer.address = document.getElementById("customerAddress").value;
+        } else {
+            newCustomer.id = document.getElementById("customerId").value;
+            newCustomer.name = document.getElementById("customerName").value;
+        }
+
         customers.push(newCustomer);
         localStorage.setItem("customers", JSON.stringify(customers));
 
         Swal.fire("Success", "Customer added successfully", "success");
+        customerForm.reset();
     });
+
+    // Initialize
+    customerRoleSelect.dispatchEvent(new Event('change'));
+});
+    
 
     // Save Product
     const productForm = document.getElementById("productForm");

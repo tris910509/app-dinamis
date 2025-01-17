@@ -1,161 +1,125 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const productTable = document.getElementById("productTable").getElementsByTagName('tbody')[0];
     const cartTable = document.getElementById("cartTable").getElementsByTagName('tbody')[0];
     const totalAmountElement = document.getElementById("totalAmount");
-    const totalDiscountedElement = document.getElementById("totalDiscounted");
-    const customerSelect = document.getElementById("customerSelect");
-    const discountInput = document.getElementById("discount");
-    const paymentStageInput = document.getElementById("paymentStage");
-    const confirmPaymentButton = document.getElementById("confirmPayment");
-    const addPaymentStageButton = document.getElementById("addPaymentStage");
+    const checkoutButton = document.getElementById("checkoutButton");
 
-    let cart = [];
     let products = JSON.parse(localStorage.getItem("products")) || [];
-    let customers = JSON.parse(localStorage.getItem("customers")) || [];
-    let paymentStages = [];
-    let totalAmount = 0;
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-    // Load customers to the customer select dropdown
-    customers.forEach(customer => {
-        const option = document.createElement("option");
-        option.value = customer.id;
-        option.textContent = customer.name;
-        customerSelect.appendChild(option);
-    });
+    // Sample products (if localStorage is empty)
+    if (products.length === 0) {
+        products = [
+            
+        ];
+        localStorage.setItem("products", JSON.stringify(products));
+    }
 
-    // Load products into the product selection modal
-    const productList = document.getElementById("productList");
-    products.forEach(product => {
-        const listItem = document.createElement("li");
-        listItem.classList.add("d-flex", "justify-content-between", "align-items-center");
-        listItem.innerHTML = `
-            <span>${product.name} - Rp ${product.price} (Stok: ${product.stock})</span>
-            <button class="btn btn-sm btn-primary addProductButton" data-id="${product.id}">Tambah</button>
-        `;
-        productList.appendChild(listItem);
-    });
-
-    // Add product to the cart
-    productList.addEventListener("click", function (e) {
-        if (e.target.classList.contains("addProductButton")) {
-            const productId = e.target.getAttribute("data-id");
-            const product = products.find(p => p.id === productId);
-            if (product && product.stock > 0) {
-                const existingProductInCart = cart.find(item => item.id === productId);
-                if (existingProductInCart) {
-                    existingProductInCart.quantity++;
-                } else {
-                    cart.push({ ...product, quantity: 1 });
-                }
-                product.stock--; // Reduce stock
-                renderCart();
-                checkLowStock(product);
-            } else {
-                Swal.fire("Stok Habis", "Produk ini sudah tidak tersedia dalam jumlah yang cukup.", "error");
-            }
-        }
-    });
+    // Render product table
+    function renderProductTable() {
+        productTable.innerHTML = "";
+        products.forEach((product, index) => {
+            const row = productTable.insertRow();
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${product.name}</td>
+                <td>$${product.price}</td>
+                <td>${product.stock}</td>
+                <td>
+                    <button class="btn btn-primary btn-sm" onclick="addToCart('${product.id}')">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </button>
+                </td>
+            `;
+        });
+    }
 
     // Render cart table
-    function renderCart() {
+    function renderCartTable() {
         cartTable.innerHTML = "";
-        totalAmount = 0;
+        let totalAmount = 0;
+
         cart.forEach((item, index) => {
             const row = cartTable.insertRow();
+            const subtotal = item.price * item.quantity;
+            totalAmount += subtotal;
+
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${item.name}</td>
-                <td>Rp ${item.price}</td>
-                <td><input type="number" class="form-control" value="${item.quantity}" min="1" data-index="${index}" onchange="updateQuantity(event)"></td>
-                <td>Rp ${item.price * item.quantity}</td>
-                <td><button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Hapus</button></td>
+                <td>$${item.price}</td>
+                <td>${item.quantity}</td>
+                <td>$${subtotal}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="removeFromCart(${index})">
+                        <i class="fas fa-trash-alt"></i> Remove
+                    </button>
+                </td>
             `;
-            totalAmount += item.price * item.quantity;
         });
 
-        const discount = parseFloat(discountInput.value) || 0;
-        const discountedAmount = totalAmount - (totalAmount * (discount / 100));
-        totalDiscountedElement.textContent = `Rp ${discountedAmount}`;
-        totalAmountElement.textContent = `Rp ${totalAmount}`;
+        totalAmountElement.textContent = totalAmount.toFixed(2);
     }
 
-    // Update product quantity
-    window.updateQuantity = function (event) {
-        const index = event.target.getAttribute("data-index");
-        const quantity = parseInt(event.target.value);
-        if (quantity > 0) {
-            cart[index].quantity = quantity;
-            renderCart();
+    // Add to cart
+    window.addToCart = function (productId) {
+        const product = products.find((p) => p.id === productId);
+
+        if (product && product.stock > 0) {
+            const cartItem = cart.find((item) => item.id === productId);
+
+            if (cartItem) {
+                cartItem.quantity += 1;
+            } else {
+                cart.push({ id: product.id, name: product.name, price: product.price, quantity: 1 });
+            }
+
+            product.stock -= 1;
+            localStorage.setItem("products", JSON.stringify(products));
+            localStorage.setItem("cart", JSON.stringify(cart));
+
+            renderProductTable();
+            renderCartTable();
+
+            Swal.fire("Success", "Product added to cart!", "success");
+        } else {
+            Swal.fire("Error", "Product is out of stock!", "error");
         }
     };
 
-    // Remove product from cart
+    // Remove from cart
     window.removeFromCart = function (index) {
-        const product = cart[index];
-        products.find(p => p.id === product.id).stock += product.quantity; // Restore stock
-        cart.splice(index, 1);
-        renderCart();
+        const cartItem = cart[index];
+        const product = products.find((p) => p.id === cartItem.id);
+
+        if (cartItem && product) {
+            product.stock += cartItem.quantity;
+            cart.splice(index, 1);
+
+            localStorage.setItem("products", JSON.stringify(products));
+            localStorage.setItem("cart", JSON.stringify(cart));
+
+            renderProductTable();
+            renderCartTable();
+
+            Swal.fire("Success", "Product removed from cart!", "success");
+        }
     };
 
-    // Check low stock for products
-    function checkLowStock(product) {
-        if (product.stock <= 5) {
-            Swal.fire({
-                title: "Stok Produk Rendah",
-                text: `Stok produk ${product.name} hampir habis!`,
-                icon: "warning",
+    // Checkout
+    checkoutButton.addEventListener("click", function () {
+        if (cart.length === 0) {
+            Swal.fire("Error", "Your cart is empty!", "error");
+        } else {
+            Swal.fire("Success", "Transaction completed!", "success").then(() => {
+                cart = [];
+                localStorage.setItem("cart", JSON.stringify(cart));
+                renderCartTable();
             });
         }
-    }
-
-    // Add payment stage
-    addPaymentStageButton.addEventListener("click", function () {
-        const paymentAmount = parseFloat(paymentStageInput.value);
-        if (paymentAmount > 0 && paymentAmount <= totalAmount) {
-            paymentStages.push(paymentAmount);
-            totalAmount -= paymentAmount;
-            renderCart();
-            Swal.fire("Pembayaran Bertahap", `Rp ${paymentAmount} telah dibayar. Sisa: Rp ${totalAmount}`, "success");
-        } else {
-            Swal.fire("Error", "Jumlah pembayaran tidak valid", "error");
-        }
     });
 
-    // Confirm payment and finalize transaction
-    confirmPaymentButton.addEventListener("click", function () {
-        if (cart.length === 0) {
-            Swal.fire("Error", "Keranjang belanja kosong", "error");
-            return;
-        }
-
-        const customerId = customerSelect.value;
-        if (!customerId) {
-            Swal.fire("Error", "Pilih pelanggan terlebih dahulu", "error");
-            return;
-        }
-
-        const transaction = {
-            id: "txn-" + Date.now(),
-            customerId: customerId,
-            items: cart,
-            total: totalAmount,
-            discount: parseFloat(discountInput.value) || 0,
-            status: "Lunas",
-            paymentStages: paymentStages,
-            date: new Date().toLocaleString(),
-        };
-
-        const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-        transactions.push(transaction);
-        localStorage.setItem("transactions", JSON.stringify(transactions));
-
-        // Clear cart and reset form
-        cart = [];
-        paymentStages = [];
-        discountInput.value = '';
-        paymentStageInput.value = '';
-        customerSelect.value = '';
-        renderCart();
-
-        Swal.fire("Success", "Transaksi berhasil", "success");
-    });
+    // Load initial data
+    renderProductTable();
+    renderCartTable();
 });

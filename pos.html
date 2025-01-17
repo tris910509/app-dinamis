@@ -12,25 +12,50 @@
     <div class="container mt-5">
         <h1>POS Transactions</h1>
 
-        <!-- Form Customer -->
         <div class="mb-4">
-            <h3>Customer Information</h3>
-            <form id="customerForm">
-                <div class="mb-3">
-                    <label for="customerName" class="form-label">Customer Name</label>
-                    <input type="text" id="customerName" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label for="customerRole" class="form-label">Customer Role</label>
-                    <select id="customerRole" class="form-select">
-                        <option value="Umum">Umum</option>
-                        <option value="PelSem">PelSem</option>
-                        <option value="PelMem">PelMem</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary">Save Customer</button>
-            </form>
+    <h3>Customer Information</h3>
+    <form id="customerForm">
+        <div class="mb-3">
+            <label for="customerRole" class="form-label">Customer Role</label>
+            <select id="customerRole" class="form-select">
+                <option value="Umum">Umum</option>
+                <option value="PelSem">PelSem</option>
+                <option value="PelMem">PelMem</option>
+            </select>
         </div>
+        
+        <!-- Customer Name, ID Displayed for PelSem and PelMem -->
+        <div id="customerDetails" class="d-none">
+            <div class="mb-3" id="customerNameSection">
+                <label for="customerName" class="form-label">Customer Name</label>
+                <input type="text" id="customerName" class="form-control" required>
+            </div>
+            <div class="mb-3" id="customerIdSection">
+                <label for="customerId" class="form-label">Customer ID</label>
+                <input type="text" id="customerId" class="form-control" disabled>
+            </div>
+        </div>
+
+        <!-- Inputs for 'Umum' Role -->
+        <div id="umumInputs" class="d-none">
+            <div class="mb-3">
+                <label for="customerEmail" class="form-label">Email</label>
+                <input type="email" id="customerEmail" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="customerContact" class="form-label">Contact</label>
+                <input type="text" id="customerContact" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="customerAddress" class="form-label">Address</label>
+                <textarea id="customerAddress" class="form-control" required></textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Customer</button>
+    </form>
+</div>
+
 
         <!-- Produk Section -->
         <div class="mb-4">

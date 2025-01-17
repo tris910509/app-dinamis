@@ -17,9 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Default Customers
     if (customers.length === 0) {
         customers = [
-            { id: "cust-1", name: "John Doe", role: "Umum" },
-            { id: "cust-2", name: "Jane Smith", role: "PelSem" },
-            { id: "cust-3", name: "Mike Johnson", role: "PelMem" }
+            
         ];
         localStorage.setItem("customers", JSON.stringify(customers));
     }
@@ -27,8 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Default Products
     if (products.length === 0) {
         products = [
-            { id: "prod-1", name: "Product 1", price: 100, stock: 50 },
-            { id: "prod-2", name: "Product 2", price: 200, stock: 30 }
+            
         ];
         localStorage.setItem("products", JSON.stringify(products));
     }

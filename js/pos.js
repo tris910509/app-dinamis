@@ -9,7 +9,18 @@ document.addEventListener("DOMContentLoaded", function () {
     let customers = JSON.parse(localStorage.getItem("customers")) || [];
     let products = JSON.parse(localStorage.getItem("products")) || [];
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
+//===========≈==========
+    document.addEventListener("DOMContentLoaded", function () {
+    const customerSelect = document.getElementById("customerSelect");
+    const paymentSection = document.getElementById("paymentSection");
+    const paymentMethod = document.getElementById("paymentMethod");
+    const confirmPaymentButton = document.getElementById("confirmPaymentButton");
+    const invoiceSection = document.getElementById("invoiceSection");
+    const invoiceCustomer = document.getElementById("invoiceCustomer");
+    const invoicePaymentMethod = document.getElementById("invoicePaymentMethod");
+    const invoiceTableBody = document.getElementById("invoiceTableBody");
+    const invoiceTotal = document.getElementById("invoiceTotal");
+//====================
     // Default Customers
     if (customers.length === 0) {
         customers = [
@@ -149,23 +160,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Initial Load
-    loadCustomers();
-    renderProductTable();
-    renderCartTable();
-});
 
 
-document.addEventListener("DOMContentLoaded", function () {
-    const customerSelect = document.getElementById("customerSelect");
-    const paymentSection = document.getElementById("paymentSection");
-    const paymentMethod = document.getElementById("paymentMethod");
-    const confirmPaymentButton = document.getElementById("confirmPaymentButton");
-    const invoiceSection = document.getElementById("invoiceSection");
-    const invoiceCustomer = document.getElementById("invoiceCustomer");
-    const invoicePaymentMethod = document.getElementById("invoicePaymentMethod");
-    const invoiceTableBody = document.getElementById("invoiceTableBody");
-    const invoiceTotal = document.getElementById("invoiceTotal");
 
     // Checkout Button Event
     checkoutButton.addEventListener("click", function () {

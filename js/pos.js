@@ -1,55 +1,48 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const customerSelect = document.getElementById("customerSelect");
-    const customerRole = document.getElementById("customerRole");
     const productTable = document.getElementById("productTable").getElementsByTagName('tbody')[0];
     const cartTable = document.getElementById("cartTable").getElementsByTagName('tbody')[0];
     const totalAmountElement = document.getElementById("totalAmount");
     const checkoutButton = document.getElementById("checkoutButton");
-    const paymentSection = document.getElementById("paymentSection");
-    const paymentAmountInput = document.getElementById("paymentAmount");
-    const confirmPaymentButton = document.getElementById("confirmPaymentButton");
+    const customerForm = document.getElementById("customerForm");
+    const paymentHistoryTable = document.getElementById("paymentHistoryTable").getElementsByTagName('tbody')[0];
 
-    let customers = JSON.parse(localStorage.getItem("customers")) || [];
     let products = JSON.parse(localStorage.getItem("products")) || [];
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
-    let transaction = null;
+    let customers = JSON.parse(localStorage.getItem("customers")) || [];
+    let paymentHistory = JSON.parse(localStorage.getItem("paymentHistory")) || [];
 
-    // Default Customers
-    if (customers.length === 0) {
-        customers = [
-            
-        ];
+    // Save Customer
+    customerForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const customerName = document.getElementById("customerName").value;
+        const customerRole = document.getElementById("customerRole").value;
+        const id = "cust-" + Date.now();
+
+        const newCustomer = { id, name: customerName, role: customerRole };
+        customers.push(newCustomer);
         localStorage.setItem("customers", JSON.stringify(customers));
-    }
 
-    // Default Products
-    if (products.length === 0) {
-        products = [
-            
-        ];
-        localStorage.setItem("products", JSON.stringify(products));
-    }
-
-    // Load Customers
-    function loadCustomers() {
-        customers.forEach((customer) => {
-            const option = document.createElement("option");
-            option.value = customer.id;
-            option.textContent = `${customer.name} (${customer.role})`;
-            customerSelect.appendChild(option);
-        });
-    }
-
-    // Update Customer Role
-    customerSelect.addEventListener("change", function () {
-        const selectedCustomer = customers.find((c) => c.id === this.value);
-        if (selectedCustomer) {
-            customerRole.textContent = selectedCustomer.role;
-            calculateTotal();
-        }
+        Swal.fire("Success", "Customer added successfully", "success");
     });
 
-    // Load Products
+    // Save Product
+    const productForm = document.getElementById("productForm");
+    productForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const name = document.getElementById("productName").value;
+        const price = parseFloat(document.getElementById("productPrice").value);
+        const stock = parseInt(document.getElementById("productStock").value);
+        const id = "prod-" + Date.now();
+
+        products.push({ id, name, price, stock });
+        localStorage.setItem("products", JSON.stringify(products));
+        renderProductTable();
+        productForm.reset();
+        Swal.fire("Success", "Product added successfully", "success");
+        bootstrap.Modal.getInstance(document.getElementById("productModal")).hide();
+    });
+
+    // Render Product Table
     function renderProductTable() {
         productTable.innerHTML = "";
         products.forEach((product, index) => {
@@ -61,12 +54,36 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${product.stock}</td>
                 <td>
                     <button class="btn btn-primary btn-sm" onclick="addToCart('${product.id}')">
-                        Add
+                        <i class="fas fa-cart-plus"></i> Add
                     </button>
                 </td>
             `;
         });
     }
+
+    // Add to Cart
+    window.addToCart = function (productId) {
+        const product = products.find((p) => p.id === productId);
+        if (product && product.stock > 0) {
+            const cartItem = cart.find((item) => item.id === productId);
+
+            if (cartItem) {
+                cartItem.quantity += 1;
+            } else {
+                cart.push({ id: product.id, name: product.name, price: product.price, quantity: 1 });
+            }
+
+            product.stock -= 1;
+            localStorage.setItem("products", JSON.stringify(products));
+            localStorage.setItem("cart", JSON.stringify(cart));
+
+            renderProductTable();
+            renderCartTable();
+            Swal.fire("Success", "Product added to cart!", "success");
+        } else {
+            Swal.fire("Error", "Product is out of stock!", "error");
+        }
+    };
 
     // Render Cart Table
     function renderCartTable() {
@@ -85,45 +102,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${item.quantity}</td>
                 <td>$${subtotal}</td>
                 <td>
-                    <button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Remove</button>
+                    <button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">
+                        <i class="fas fa-trash-alt"></i> Remove
+                    </button>
                 </td>
             `;
         });
 
-        const discount = getDiscount();
-        totalAmount = totalAmount - (totalAmount * discount) / 100;
-        totalAmountElement.textContent = totalAmount.toFixed(2);
+        const discount = parseFloat(document.getElementById("customerType").value);
+        const discountedTotal = totalAmount - (totalAmount * discount) / 100;
+        totalAmountElement.textContent = discountedTotal.toFixed(2);
     }
-
-    // Get Discount based on Customer Role
-    function getDiscount() {
-        const selectedCustomer = customers.find((c) => c.id === customerSelect.value);
-        if (selectedCustomer) {
-            return selectedCustomer.role === "PelSem" ? 5 : selectedCustomer.role === "PelMem" ? 10 : 0;
-        }
-        return 0;
-    }
-
-    // Add to Cart
-    window.addToCart = function (productId) {
-        const product = products.find((p) => p.id === productId);
-
-        if (product && product.stock > 0) {
-            const cartItem = cart.find((item) => item.id === productId);
-            if (cartItem) {
-                cartItem.quantity += 1;
-            } else {
-                cart.push({ id: product.id, name: product.name, price: product.price, quantity: 1 });
-            }
-            product.stock -= 1;
-
-            localStorage.setItem("products", JSON.stringify(products));
-            localStorage.setItem("cart", JSON.stringify(cart));
-
-            renderProductTable();
-            renderCartTable();
-        }
-    };
 
     // Remove from Cart
     window.removeFromCart = function (index) {
@@ -139,60 +128,56 @@ document.addEventListener("DOMContentLoaded", function () {
 
             renderProductTable();
             renderCartTable();
+            Swal.fire("Success", "Product removed from cart!", "success");
         }
     };
 
     // Checkout
     checkoutButton.addEventListener("click", function () {
         if (cart.length === 0) {
-            Swal.fire("Error", "Cart is empty!", "error");
-        } else {
-            // Show Payment Section
-            paymentSection.style.display = "block";
-            transaction = {
-                customerId: customerSelect.value,
-                cart: [...cart],
-                totalAmount: parseFloat(totalAmountElement.textContent),
-                status: "Unpaid" // Default status is Unpaid
-            };
-        }
-    });
-
-    // Confirm Payment
-    confirmPaymentButton.addEventListener("click", function () {
-        const paymentAmount = parseFloat(paymentAmountInput.value);
-
-        if (isNaN(paymentAmount) || paymentAmount <= 0) {
-            Swal.fire("Error", "Invalid payment amount!", "error");
+            Swal.fire("Error", "Your cart is empty!", "error");
             return;
         }
 
-        const totalAmount = transaction.totalAmount;
-        if (paymentAmount < totalAmount) {
-            Swal.fire("Error", "Insufficient payment!", "error");
-        } else {
-            // Mark the transaction as Paid
-            transaction.status = "Paid";
-            Swal.fire("Success", "Payment successful! Thank you for your purchase.", "success");
+        const total = parseFloat(totalAmountElement.textContent);
+        const paymentMethod = document.getElementById("paymentMethod").value;
+        const customerId = customers.length ? customers[0].id : "Unknown";
 
-            // Clear Cart
-            cart = [];
-            localStorage.setItem("cart", JSON.stringify(cart));
+        // Save payment to history
+        const payment = {
+            customerId,
+            amount: total,
+            paymentMethod,
+            date: new Date().toLocaleString()
+        };
+        paymentHistory.push(payment);
+        localStorage.setItem("paymentHistory", JSON.stringify(paymentHistory));
 
-            // Save Transaction to LocalStorage or Database
-            const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-            transactions.push(transaction);
-            localStorage.setItem("transactions", JSON.stringify(transactions));
+        cart = [];
+        localStorage.setItem("cart", JSON.stringify(cart));
 
-            // Hide Payment Section and Reset
-            paymentSection.style.display = "none";
-            paymentAmountInput.value = "";
-            renderCartTable();
-        }
+        renderCartTable();
+        renderPaymentHistoryTable();
+        Swal.fire("Success", "Checkout successful", "success");
     });
 
-    // Initial Load
-    loadCustomers();
+    // Render Payment History Table
+    function renderPaymentHistoryTable() {
+        paymentHistoryTable.innerHTML = "";
+        paymentHistory.forEach((payment, index) => {
+            const row = paymentHistoryTable.insertRow();
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${payment.customerId}</td>
+                <td>$${payment.amount}</td>
+                <td>${payment.paymentMethod}</td>
+                <td>${payment.date}</td>
+            `;
+        });
+    }
+
+    // Load Data
     renderProductTable();
     renderCartTable();
+    renderPaymentHistoryTable();
 });

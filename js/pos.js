@@ -1,38 +1,37 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // Element
     const customerSelect = document.getElementById("customerSelect");
+    const productTableBody = document.getElementById("productTable").getElementsByTagName('tbody')[0];
+    const cartTableBody = document.getElementById("cartTable").getElementsByTagName('tbody')[0];
+    const totalAmountElement = document.getElementById("totalAmount");
+    const checkoutButton = document.getElementById("checkoutButton");
     const paymentSection = document.getElementById("paymentSection");
     const paymentMethod = document.getElementById("paymentMethod");
     const confirmPaymentButton = document.getElementById("confirmPaymentButton");
+    const paymentConfirmationSection = document.getElementById("paymentConfirmationSection");
+    const completePaymentButton = document.getElementById("completePaymentButton");
+    const cancelPaymentButton = document.getElementById("cancelPaymentButton");
     const invoiceSection = document.getElementById("invoiceSection");
     const invoiceCustomer = document.getElementById("invoiceCustomer");
     const invoicePaymentMethod = document.getElementById("invoicePaymentMethod");
     const invoiceTableBody = document.getElementById("invoiceTableBody");
     const invoiceTotal = document.getElementById("invoiceTotal");
-    const totalAmountElement = document.getElementById("totalAmount");
 
-    let customers = JSON.parse(localStorage.getItem("customers")) || [];
-    let products = JSON.parse(localStorage.getItem("products")) || [];
+    // Data pelanggan dan produk
+    let customers = JSON.parse(localStorage.getItem("customers")) || [
+        
+    ];
+
+    let products = JSON.parse(localStorage.getItem("products")) || [
+        
+    ];
+
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-    // Default Customers and Products (if localStorage is empty)
-    if (customers.length === 0) {
-        customers = [
-            
-        ];
-        localStorage.setItem("customers", JSON.stringify(customers));
-    }
-
-    if (products.length === 0) {
-        products = [
-            
-        ];
-        localStorage.setItem("products", JSON.stringify(products));
-    }
-
-    // Load Customers
+    // Memuat daftar pelanggan ke dropdown
     function loadCustomers() {
-        customerSelect.innerHTML = '';
-        customers.forEach((customer) => {
+        customerSelect.innerHTML = '<option value="">Pilih Pelanggan</option>';
+        customers.forEach(customer => {
             const option = document.createElement("option");
             option.value = customer.id;
             option.textContent = `${customer.name} (${customer.role})`;
@@ -40,46 +39,22 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Render Product Table
+    // Memuat daftar produk ke tabel
     function renderProductTable() {
-        const productTable = document.getElementById("productTable").getElementsByTagName('tbody')[0];
-        productTable.innerHTML = '';
+        productTableBody.innerHTML = '';
         products.forEach((product, index) => {
-            const row = productTable.insertRow();
+            const row = productTableBody.insertRow();
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${product.name}</td>
                 <td>$${product.price}</td>
                 <td>${product.stock}</td>
-                <td><button class="btn btn-primary btn-sm" onclick="addToCart('${product.id}')">Add</button></td>
+                <td><button class="btn btn-primary btn-sm" onclick="addToCart('${product.id}')">Tambah</button></td>
             `;
         });
     }
 
-    // Render Cart Table
-    function renderCartTable() {
-        const cartTable = document.getElementById("cartTable").getElementsByTagName('tbody')[0];
-        cartTable.innerHTML = '';
-        let totalAmount = 0;
-        
-        cart.forEach((item, index) => {
-            const subtotal = item.price * item.quantity;
-            totalAmount += subtotal;
-            const row = cartTable.insertRow();
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${item.name}</td>
-                <td>$${item.price}</td>
-                <td>${item.quantity}</td>
-                <td>$${subtotal}</td>
-                <td><button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Remove</button></td>
-            `;
-        });
-
-        totalAmountElement.textContent = totalAmount.toFixed(2);
-    }
-
-    // Add Product to Cart
+    // Menambah produk ke keranjang
     window.addToCart = function (productId) {
         const product = products.find(p => p.id === productId);
         if (product && product.stock > 0) {
@@ -97,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Remove Product from Cart
+    // Menghapus produk dari keranjang
     window.removeFromCart = function (index) {
         const product = cart[index];
         const prodIndex = products.findIndex(p => p.id === product.id);
@@ -109,58 +84,101 @@ document.addEventListener("DOMContentLoaded", function () {
         renderProductTable();
     };
 
-    // Checkout Button Event
-    checkoutButton.addEventListener("click", function () {
-        if (cart.length === 0) {
-            Swal.fire("Error", "Cart is empty!", "error");
-        } else if (!customerSelect.value) {
-            Swal.fire("Error", "Please select a customer!", "error");
-        } else {
-            paymentSection.style.display = "block";
+    // Menampilkan tabel keranjang
+    function renderCartTable() {
+        cartTableBody.innerHTML = '';
+        let totalAmount = 0;
+        cart.forEach((item, index) => {
+            const subtotal = item.price * item.quantity;
+            totalAmount += subtotal;
+            const row = cartTableBody.insertRow();
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.name}</td>
+                <td>$${item.price}</td>
+                <td>${item.quantity}</td>
+                <td>$${subtotal}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Hapus</button></td>
+            `;
+        });
+        totalAmountElement.textContent = totalAmount.toFixed(2);
+    }
+
+    // Konfirmasi pembayaran
+    checkoutButton.addEventListener("click", () => {
+        if (customerSelect.value === "") {
+            Swal.fire("Error", "Pilih pelanggan terlebih dahulu!", "error");
+            return;
         }
+        paymentSection.style.display = "block";
     });
 
-    // Confirm Payment Button Event
-    confirmPaymentButton.addEventListener("click", function () {
-        if (!paymentMethod.value) {
-            Swal.fire("Error", "Please select a payment method!", "error");
-        } else {
-            // Generate Invoice
-            const selectedCustomer = customers.find(c => c.id === customerSelect.value);
-            invoiceCustomer.textContent = selectedCustomer.name;
-            invoicePaymentMethod.textContent = paymentMethod.value.toUpperCase();
-
-            invoiceTableBody.innerHTML = "";
-            let totalAmount = 0;
-
-            cart.forEach((item, index) => {
-                const subtotal = item.price * item.quantity;
-                totalAmount += subtotal;
-
-                const row = invoiceTableBody.insertRow();
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${item.name}</td>
-                    <td>$${item.price}</td>
-                    <td>${item.quantity}</td>
-                    <td>$${subtotal}</td>
-                `;
-            });
-
-            invoiceTotal.textContent = totalAmount.toFixed(2);
-
-            // Clear Cart and Display Invoice
-            cart = [];
-            localStorage.setItem("cart", JSON.stringify(cart));
-            paymentSection.style.display = "none";
-            renderCartTable();
-            invoiceSection.style.display = "block";
-
-            Swal.fire("Success", "Payment completed and invoice generated!", "success");
-        }
+    // Menyelesaikan pembayaran
+    confirmPaymentButton.addEventListener("click", () => {
+        paymentConfirmationSection.style.display = "block";
     });
 
-    // Initial Load
+    // Menyelesaikan pembayaran dan membuat transaksi
+    completePaymentButton.addEventListener("click", () => {
+        const customerId = customerSelect.value;
+        const selectedCustomer = customers.find(c => c.id === customerId);
+        const paymentMethodValue = paymentMethod.value;
+
+        const transaction = {
+            id: "trans-" + new Date().getTime(),
+            customerId: selectedCustomer.id,
+            products: cart.map(item => ({
+                productId: item.id,
+                productName: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                subtotal: item.price * item.quantity
+            })),
+            total: cart.reduce((total, item) => total + (item.price * item.quantity), 0),
+            paymentMethod: paymentMethodValue
+        };
+
+        transactions.push(transaction);
+        localStorage.setItem("transactions", JSON.stringify(transactions));
+
+        // Clear cart
+        cart = [];
+        localStorage.setItem("cart", JSON.stringify(cart));
+
+        displayInvoice(transaction);
+        Swal.fire("Sukses", "Pembayaran selesai!", "success");
+    });
+
+    // Menampilkan invoice
+    function displayInvoice(transaction) {
+        invoiceCustomer.textContent = customers.find(c => c.id === transaction.customerId).name;
+        invoicePaymentMethod.textContent = transaction.paymentMethod.toUpperCase();
+        invoiceTableBody.innerHTML = "";
+        let totalAmount = 0;
+
+        transaction.products.forEach((item, index) => {
+            const row = invoiceTableBody.insertRow();
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.productName}</td>
+                <td>$${item.price}</td>
+                <td>${item.quantity}</td>
+                <td>$${item.subtotal}</td>
+            `;
+            totalAmount += item.subtotal;
+        });
+
+        invoiceTotal.textContent = totalAmount.toFixed(2);
+        invoiceSection.style.display = "block";
+    }
+
+    // Menyembunyikan bagian pembayaran
+    cancelPaymentButton.addEventListener("click", () => {
+        paymentConfirmationSection.style.display = "none";
+        paymentSection.style.display = "none";
+    });
+
+    // Memuat data saat halaman dimuat
     loadCustomers();
     renderProductTable();
     renderCartTable();

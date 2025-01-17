@@ -154,3 +154,73 @@ document.addEventListener("DOMContentLoaded", function () {
     renderProductTable();
     renderCartTable();
 });
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const customerSelect = document.getElementById("customerSelect");
+    const paymentSection = document.getElementById("paymentSection");
+    const paymentMethod = document.getElementById("paymentMethod");
+    const confirmPaymentButton = document.getElementById("confirmPaymentButton");
+    const invoiceSection = document.getElementById("invoiceSection");
+    const invoiceCustomer = document.getElementById("invoiceCustomer");
+    const invoicePaymentMethod = document.getElementById("invoicePaymentMethod");
+    const invoiceTableBody = document.getElementById("invoiceTableBody");
+    const invoiceTotal = document.getElementById("invoiceTotal");
+
+    // Checkout Button Event
+    checkoutButton.addEventListener("click", function () {
+        if (cart.length === 0) {
+            Swal.fire("Error", "Cart is empty!", "error");
+        } else if (!customerSelect.value) {
+            Swal.fire("Error", "Please select a customer!", "error");
+        } else {
+            paymentSection.style.display = "block";
+        }
+    });
+
+    // Confirm Payment Button Event
+    confirmPaymentButton.addEventListener("click", function () {
+        if (!paymentMethod.value) {
+            Swal.fire("Error", "Please select a payment method!", "error");
+        } else {
+            // Generate Invoice
+            const selectedCustomer = customers.find((c) => c.id === customerSelect.value);
+            invoiceCustomer.textContent = selectedCustomer.name;
+            invoicePaymentMethod.textContent = paymentMethod.value.toUpperCase();
+
+            invoiceTableBody.innerHTML = "";
+            let totalAmount = 0;
+
+            cart.forEach((item, index) => {
+                const subtotal = item.price * item.quantity;
+                totalAmount += subtotal;
+
+                const row = invoiceTableBody.insertRow();
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>$${item.price}</td>
+                    <td>${item.quantity}</td>
+                    <td>$${subtotal}</td>
+                `;
+            });
+
+            invoiceTotal.textContent = totalAmount.toFixed(2);
+
+            // Clear Cart and Display Invoice
+            cart = [];
+            localStorage.setItem("cart", JSON.stringify(cart));
+            paymentSection.style.display = "none";
+            renderCartTable();
+            invoiceSection.style.display = "block";
+
+            Swal.fire("Success", "Payment completed and invoice generated!", "success");
+        }
+    });
+
+    // Initial Load
+    loadCustomers();
+    renderProductTable();
+    renderCartTable();
+});
+

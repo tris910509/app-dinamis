@@ -4,76 +4,217 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        .navbar-nav li {
+            margin: 10px 0;
+        }
+        .sidebar {
+            width: 250px;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .content {
+            margin-left: 270px;
+        }
+        .header-icon {
+            font-size: 20px;
+            margin-right: 15px;
+        }
+        .search-bar {
+            width: 300px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1>Dashboard</h1>
-        
-        <!-- Summary Cards -->
-        <div class="row">
-            <div class="col-md-3">
-                <div class="card text-white bg-primary mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Users</h5>
-                        <p class="card-text" id="totalUsers">0</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-white bg-success mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Customers</h5>
-                        <p class="card-text" id="totalCustomers">0</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-white bg-warning mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Products</h5>
-                        <p class="card-text" id="totalProducts">0</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-white bg-danger mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Transactions</h5>
-                        <p class="card-text" id="totalTransactions">0</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3 class="text-center">Dashboard</h3>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link active" href="#">Users</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Customers</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Supplier</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Categories</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Products</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">POS</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Konfirmasi Pembayaran</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Laporan</a></li>
+        </ul>
+    </div>
 
-        <!-- Charts -->
-        <div class="row">
-            <div class="col-md-6">
-                <canvas id="revenueChart"></canvas>
+    <!-- Content Area -->
+    <div class="content">
+        <!-- Header with Search and Icons -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <form class="d-flex">
+                    <input class="form-control search-bar" type="search" placeholder="Search by ID" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+                <div class="d-flex align-items-center">
+                    <!-- Notification Icon -->
+                    <i class="fas fa-bell header-icon" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notifications"></i>
+                    <!-- Profile Icon -->
+                    <i class="fas fa-user-circle header-icon" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Profile"></i>
+                </div>
             </div>
-            <div class="col-md-6">
-                <canvas id="topProductsChart"></canvas>
-            </div>
-        </div>
+        </nav>
 
-        <!-- Navigation -->
-        <div class="mt-5">
-            <h3>Navigate to Features</h3>
-            <div class="list-group">
-                <a href="users.html" class="list-group-item list-group-item-action">Users</a>
-                <a href="customers.html" class="list-group-item list-group-item-action">Customers</a>
-                <a href="suppliers.html" class="list-group-item list-group-item-action">Suppliers</a>
-                <a href="categories.html" class="list-group-item list-group-item-action">Categories</a>
-                <a href="products.html" class="list-group-item list-group-item-action">Products</a>
-                <a href="transactions.html" class="list-group-item list-group-item-action">Transactions</a>
-                <a href="payment-confirmation.html" class="list-group-item list-group-item-action">Payment Confirmation</a>
-                <a href="reports.html" class="list-group-item list-group-item-action">Reports</a>
+        <!-- Main Content -->
+        <div class="container mt-5">
+            <h2 class="mb-4">Dashboard</h2>
+
+            <!-- Row for Overview Cards -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Customers</h5>
+                            <p class="card-text" id="totalCustomers">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Sales ($)</h5>
+                            <p class="card-text" id="totalSales">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Active Products</h5>
+                            <p class="card-text" id="activeProducts">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-danger mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Out of Stock</h5>
+                            <p class="card-text" id="outOfStock">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row for Graphs -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Product Status Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="productStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Sales Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row for Transaction History -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Transaction History</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped" id="transactionHistoryTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Customer</th>
+                                        <th>Total</th>
+                                        <th>Payment Method</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be dynamically added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row for Latest Customers -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Latest Customers</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped" id="latestCustomersTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Customer Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be dynamically added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row for Latest Products -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Latest Products</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped" id="latestProductsTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Product Name</th>
+                                        <th>Price ($)</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be dynamically added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="js/dashboard.js"></script>
+    <!-- JQuery and Custom Script -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/dashboard.js"></script> <!-- External JS File -->
 </body>
 </html>

@@ -1,97 +1,121 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const searchInput = document.getElementById("searchInput");
-    const filterBtn = document.getElementById("filterBtn");
-    const transactionTable = document.getElementById("transactionTable").getElementsByTagName('tbody')[0];
+// Sample Data (Replace with actual data from localStorage or database)
+let customers = [
+    { id: 1, name: "John Doe", email: "john@example.com", role: "PelSem" },
+    { id: 2, name: "Jane Smith", email: "jane@example.com", role: "PelMem" }
+];
+let products = [
+    { id: 1, name: "Product A", price: 100, stock: 50, status: "active" },
+    { id: 2, name: "Product B", price: 150, stock: 0, status: "inactive" }
+];
+let paymentHistory = [
+    { customerId: 1, amount: 200, paymentMethod: "cash", date: "2025-01-10" },
+    { customerId: 2, amount: 300, paymentMethod: "credit card", date: "2025-01-11" }
+];
 
-    // Load data from localStorage
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const customers = JSON.parse(localStorage.getItem("customers")) || [];
-    const products = JSON.parse(localStorage.getItem("products")) || [];
-    const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-
-    // Update summary cards
-    document.getElementById("totalUsers").textContent = users.length;
+// Initialize Dashboard Data
+function initDashboardData() {
+    // Total Customers
     document.getElementById("totalCustomers").textContent = customers.length;
-    document.getElementById("totalProducts").textContent = products.length;
-    document.getElementById("totalTransactions").textContent = transactions.length;
 
-    // Prepare data for charts
-    const monthlyRevenue = Array(12).fill(0); // Placeholder for monthly revenue
-    transactions.forEach(transaction => {
-        const date = new Date(transaction.date);
-        const month = date.getMonth(); // 0-11
-        monthlyRevenue[month] += transaction.total;
+    // Total Sales
+    let totalSales = paymentHistory.reduce((acc, payment) => acc + payment.amount, 0);
+    document.getElementById("totalSales").textContent = totalSales;
+
+    // Active Products
+    let activeProducts = products.filter(p => p.status === 'active').length;
+    document.getElementById("activeProducts").textContent = activeProducts;
+
+    // Out of Stock Products
+    let outOfStock = products.filter(p => p.stock === 0).length;
+    document.getElementById("outOfStock").textContent = outOfStock;
+}
+
+// Render Transaction History
+function renderTransactionHistory() {
+    const tbody = document.querySelector("#transactionHistoryTable tbody");
+    paymentHistory.forEach((payment, index) => {
+        let customer = customers.find(c => c.id === payment.customerId);
+        let row = `<tr>
+                    <td>${index + 1}</td>
+                    <td>${customer.name}</td>
+                    <td>$${payment.amount}</td>
+                    <td>${payment.paymentMethod}</td>
+                    <td>${payment.date}</td>
+                  </tr>`;
+        tbody.innerHTML += row;
     });
+}
 
-    const topProducts = {};
-    transactions.forEach(transaction => {
-        if (!topProducts[transaction.product]) {
-            topProducts[transaction.product] = 0;
+// Render Latest Customers
+function renderLatestCustomers() {
+    const tbody = document.querySelector("#latestCustomersTable tbody");
+    customers.slice(0, 5).forEach((customer, index) => {
+        let row = `<tr>
+                    <td>${index + 1}</td>
+                    <td>${customer.name}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.role}</td>
+                  </tr>`;
+        tbody.innerHTML += row;
+    });
+}
+
+// Render Latest Products
+function renderLatestProducts() {
+    const tbody = document.querySelector("#latestProductsTable tbody");
+    products.slice(0, 5).forEach((product, index) => {
+        let row = `<tr>
+                    <td>${index + 1}</td>
+                    <td>${product.name}</td>
+                    <td>$${product.price}</td>
+                    <td>${product.status}</td>
+                  </tr>`;
+        tbody.innerHTML += row;
+    });
+}
+
+// Initialize Dashboard
+function initDashboard() {
+    initDashboardData();
+    renderTransactionHistory();
+    renderLatestCustomers();
+    renderLatestProducts();
+    renderCharts();
+}
+
+initDashboard();
+
+// Charts (Sales and Product Status)
+function renderCharts() {
+    // Sales Overview Chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'bar',
+        data: {
+            labels: ["2025-01-10", "2025-01-11"], // Date or month
+            datasets: [{
+                label: 'Total Sales ($)',
+                data: [200, 300],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
         }
-        topProducts[transaction.product] += transaction.quantity;
     });
 
-    // Chart.js: Revenue Chart
-    const revenueCtx = document.getElementById("revenueChart").getContext("2d");
-    new Chart(revenueCtx, {
-        type: "line",
+    // Product Status Chart
+    const productStatusCtx = document.getElementById('productStatusChart').getContext('2d');
+    new Chart(productStatusCtx, {
+        type: 'pie',
         data: {
-            labels: [
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-            ],
+            labels: ['Active', 'Inactive'],
             datasets: [{
-                label: "Monthly Revenue",
-                data: monthlyRevenue,
-                borderColor: "rgba(75, 192, 192, 1)",
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
-            }],
-        },
+                data: [
+                    products.filter(p => p.status === 'active').length,
+                    products.filter(p => p.status === 'inactive').length
+                ],
+                backgroundColor: ['#36A2EB', '#FF6384']
+            }]
+        }
     });
-
-    // Chart.js: Top Products Chart
-    const productNames = Object.keys(topProducts);
-    const productQuantities = Object.values(topProducts);
-    const topProductsCtx = document.getElementById("topProductsChart").getContext("2d");
-    new Chart(topProductsCtx, {
-        type: "bar",
-        data: {
-            labels: productNames,
-            datasets: [{
-                label: "Top Products",
-                data: productQuantities,
-                backgroundColor: "rgba(153, 102, 255, 0.6)",
-                borderColor: "rgba(153, 102, 255, 1)",
-                borderWidth: 1,
-            }],
-        },
-    });
-
-    // Filter Functionality
-    filterBtn.addEventListener("click", function () {
-        const searchText = searchInput.value.toLowerCase();
-        const filteredTransactions = transactions.filter(transaction => 
-            transaction.product.toLowerCase().includes(searchText) || 
-            transaction.customerName.toLowerCase().includes(searchText)
-        );
-        displayTransactions(filteredTransactions);
-    });
-
-    // Display transactions
-    function displayTransactions(transactions) {
-        transactionTable.innerHTML = "";
-        transactions.forEach(transaction => {
-            const row = transactionTable.insertRow();
-            row.innerHTML = `
-                <td>${transaction.id}</td>
-                <td>${transaction.product}</td>
-                <td>${transaction.customerName}</td>
-                <td>${transaction.total}</td>
-                <td>${transaction.date}</td>
-                <td>${transaction.status}</td>
-            `;
-        });
-    }
-
-    displayTransactions(transactions);
-});
+}
